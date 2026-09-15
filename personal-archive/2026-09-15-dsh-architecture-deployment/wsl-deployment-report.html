@@ -1,0 +1,448 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>DeepSeek Harness WSL 部署过程报告</title>
+  <style>
+    :root {
+      --ink: #14213d;
+      --muted: #5d6b82;
+      --line: #dfe6ef;
+      --paper: #ffffff;
+      --wash: #f5f8fc;
+      --blue: #1769e0;
+      --blue-soft: #eaf2ff;
+      --green: #0b7a53;
+      --green-soft: #e8f7f0;
+      --amber: #9a5b00;
+      --amber-soft: #fff5df;
+      --red: #b42318;
+      --red-soft: #fff0ee;
+      --code: #101827;
+      --shadow: 0 10px 28px rgba(20, 33, 61, .08);
+    }
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      margin: 0;
+      color: var(--ink);
+      background: var(--wash);
+      font: 15px/1.65 "Microsoft YaHei", "PingFang SC", "Noto Sans CJK SC", Arial, sans-serif;
+    }
+    a { color: var(--blue); text-decoration: none; }
+    a:hover { text-decoration: underline; }
+    .hero {
+      color: white;
+      background:
+        radial-gradient(circle at 83% 18%, rgba(70, 164, 255, .34), transparent 27%),
+        linear-gradient(135deg, #10234b 0%, #174fa8 65%, #1573d6 100%);
+      padding: 54px 24px 46px;
+    }
+    .hero-inner, .layout { max-width: 1240px; margin: 0 auto; }
+    .eyebrow { font-size: 13px; letter-spacing: .12em; opacity: .78; text-transform: uppercase; }
+    h1 { margin: 8px 0 12px; font-size: clamp(30px, 5vw, 50px); line-height: 1.16; }
+    .subtitle { max-width: 850px; margin: 0; color: rgba(255,255,255,.82); font-size: 17px; }
+    .meta { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 26px; }
+    .meta span { padding: 7px 11px; border: 1px solid rgba(255,255,255,.24); border-radius: 999px; background: rgba(255,255,255,.08); }
+    .layout { display: grid; grid-template-columns: 250px minmax(0, 1fr); gap: 24px; padding: 28px 20px 70px; }
+    nav {
+      position: sticky; top: 18px; align-self: start;
+      border: 1px solid var(--line); border-radius: 14px; background: var(--paper); box-shadow: var(--shadow); padding: 16px;
+    }
+    nav strong { display: block; margin: 2px 8px 10px; }
+    nav a { display: block; padding: 7px 9px; border-radius: 8px; color: #33415c; font-size: 14px; }
+    nav a:hover { background: var(--blue-soft); text-decoration: none; }
+    main { min-width: 0; }
+    section {
+      margin-bottom: 20px; padding: 26px;
+      border: 1px solid var(--line); border-radius: 16px; background: var(--paper); box-shadow: var(--shadow);
+    }
+    h2 { margin: 0 0 17px; font-size: 24px; }
+    h3 { margin: 22px 0 9px; font-size: 17px; }
+    p { margin: 8px 0; }
+    .lead { color: #33415c; font-size: 16px; }
+    .grid { display: grid; gap: 13px; }
+    .grid-4 { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+    .grid-3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+    .card { border: 1px solid var(--line); border-radius: 12px; padding: 16px; background: #fbfdff; }
+    .card .label { color: var(--muted); font-size: 12px; letter-spacing: .05em; }
+    .card .value { margin-top: 4px; font-size: 20px; font-weight: 700; line-height: 1.3; }
+    .card .detail { margin-top: 6px; color: var(--muted); font-size: 13px; }
+    .badge { display: inline-flex; align-items: center; gap: 6px; padding: 3px 9px; border-radius: 999px; font-size: 12px; font-weight: 700; }
+    .ok { color: var(--green); background: var(--green-soft); }
+    .warn { color: var(--amber); background: var(--amber-soft); }
+    .info { color: var(--blue); background: var(--blue-soft); }
+    .dot { width: 7px; height: 7px; border-radius: 50%; background: currentColor; }
+    .callout { margin: 14px 0; padding: 13px 15px; border-left: 4px solid var(--blue); border-radius: 8px; background: var(--blue-soft); }
+    .callout.warnbox { border-color: #d88a00; background: var(--amber-soft); }
+    .callout.safe { border-color: var(--green); background: var(--green-soft); }
+    table { width: 100%; border-collapse: collapse; margin: 12px 0; font-size: 14px; }
+    th, td { padding: 11px 12px; border-bottom: 1px solid var(--line); text-align: left; vertical-align: top; }
+    th { color: #33415c; background: #f4f7fb; font-weight: 700; }
+    tr:last-child td { border-bottom: 0; }
+    code { padding: 2px 5px; border-radius: 5px; color: #234; background: #eef2f7; font-family: Consolas, "SFMono-Regular", monospace; font-size: .92em; }
+    pre { overflow-x: auto; margin: 10px 0 14px; padding: 14px 16px; border-radius: 10px; color: #dce8ff; background: var(--code); font: 13px/1.55 Consolas, "SFMono-Regular", monospace; white-space: pre-wrap; word-break: break-word; }
+    pre code { padding: 0; color: inherit; background: transparent; }
+    .timeline { position: relative; margin-left: 8px; padding-left: 28px; }
+    .timeline:before { content: ""; position: absolute; left: 7px; top: 8px; bottom: 8px; width: 2px; background: #bdd2ee; }
+    .step { position: relative; padding: 0 0 23px; }
+    .step:last-child { padding-bottom: 0; }
+    .step:before { content: attr(data-step); position: absolute; left: -28px; top: 2px; display: grid; place-items: center; width: 17px; height: 17px; border-radius: 50%; color: white; background: var(--blue); font-size: 10px; font-weight: 700; box-shadow: 0 0 0 4px var(--blue-soft); }
+    .step h3 { margin: 0 0 4px; }
+    .step .result { color: var(--muted); }
+    .architecture { overflow-x: auto; padding: 18px; border: 1px dashed #b8c8dc; border-radius: 12px; background: #f8fbff; }
+    .flow { display: flex; align-items: stretch; justify-content: center; min-width: 700px; gap: 9px; }
+    .node { flex: 1; min-width: 145px; padding: 13px; border: 1px solid #c9d6e8; border-radius: 10px; background: white; text-align: center; }
+    .node b { display: block; margin-bottom: 4px; }
+    .arrow { align-self: center; color: var(--blue); font-size: 22px; font-weight: 700; }
+    .path-list { display: grid; grid-template-columns: 220px 1fr; gap: 7px 14px; }
+    .path-list dt { color: var(--muted); }
+    .path-list dd { margin: 0; word-break: break-all; }
+    .footer { padding: 0 24px 38px; text-align: center; color: var(--muted); font-size: 13px; }
+    .no-break { break-inside: avoid; }
+    @media (max-width: 980px) {
+      .layout { grid-template-columns: 1fr; }
+      nav { position: static; }
+      .grid-4, .grid-3 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    }
+    @media (max-width: 620px) {
+      .hero { padding: 38px 18px 32px; }
+      .layout { padding: 18px 10px 50px; }
+      section { padding: 19px; }
+      .grid-4, .grid-3 { grid-template-columns: 1fr; }
+      .path-list { grid-template-columns: 1fr; }
+    }
+    @media print {
+      body { background: white; font-size: 11px; }
+      .hero { padding: 28px; print-color-adjust: exact; -webkit-print-color-adjust: exact; }
+      .layout { display: block; max-width: none; padding: 18px 0; }
+      nav { display: none; }
+      section { margin: 0 0 14px; box-shadow: none; break-inside: auto; }
+      h2, h3, .card, table, pre, .callout, .architecture { break-inside: avoid; }
+      a { color: inherit; text-decoration: none; }
+    }
+  </style>
+</head>
+<body>
+  <header class="hero">
+    <div class="hero-inner">
+      <div class="eyebrow">Deployment Evidence Pack · WSL2</div>
+      <h1>DeepSeek Harness 部署过程报告</h1>
+      <p class="subtitle">从环境检查、源码获取、依赖安装与故障排查，到构建、启动、鉴权验证及日常运维的一站式记录。报告为单文件 HTML，可离线打开并直接打印为 PDF。</p>
+      <div class="meta">
+        <span>生成时间：2026-09-15（Asia/Shanghai）</span>
+        <span>目标系统：Ubuntu 24.04 / WSL2</span>
+        <span>部署目录：/home/kevin/apps/deepseek-harness</span>
+        <span>监听地址：127.0.0.1:3080</span>
+      </div>
+    </div>
+  </header>
+
+  <div class="layout">
+    <nav aria-label="目录">
+      <strong>报告目录</strong>
+      <a href="#summary">1. 执行摘要</a>
+      <a href="#baseline">2. 环境与版本基线</a>
+      <a href="#topology">3. 部署拓扑</a>
+      <a href="#process">4. 完整部署过程</a>
+      <a href="#troubleshooting">5. 故障与处置</a>
+      <a href="#verification">6. 验证证据</a>
+      <a href="#current">7. 当前运行状态</a>
+      <a href="#operations">8. 运维操作</a>
+      <a href="#security">9. 安全说明</a>
+      <a href="#paths">10. 文件与目录</a>
+      <a href="#appendix">11. 命令附录</a>
+    </nav>
+
+    <main>
+      <section id="summary">
+        <h2>1. 执行摘要</h2>
+        <p class="lead">DeepSeek Harness 已在本机 WSL2 的 Ubuntu 环境中完成源码部署、依赖安装、全量构建和 Web 启动验证。当前服务仍在运行，仅绑定回环地址，并启用了进程令牌鉴权。</p>
+        <div class="grid grid-4">
+          <div class="card"><div class="label">总体结果</div><div class="value">部署成功</div><div class="detail"><span class="badge ok"><i class="dot"></i>已验证</span></div></div>
+          <div class="card"><div class="label">Web 服务</div><div class="value">运行中</div><div class="detail">Node PID 2144 · TCP 3080</div></div>
+          <div class="card"><div class="label">源码版本</div><div class="value">c291e7961a51</div><div class="detail">master 跟踪 origin/master</div></div>
+          <div class="card"><div class="label">部署体积</div><div class="value">1.3 GiB</div><div class="detail">含源码、依赖与构建产物</div></div>
+        </div>
+        <div class="callout warnbox"><strong>边界说明：</strong>当前是前台进程方式运行，尚未配置 systemd、登录自启或 Windows 开机自启；因此 WSL 终止、主机重启或承载终端被关闭后，需要手工重新启动。</div>
+      </section>
+
+      <section id="baseline">
+        <h2>2. 环境与版本基线</h2>
+        <table>
+          <thead><tr><th>项目</th><th>实际值</th><th>说明</th></tr></thead>
+          <tbody>
+            <tr><td>宿主/虚拟化</td><td>Windows + WSL2</td><td>Linux 文件系统位于 WSL ext4，避免将大量 Node 依赖放在 <code>/mnt/c</code> 或 <code>/mnt/d</code> 下造成 I/O 损耗。</td></tr>
+            <tr><td>Linux 发行版</td><td>Ubuntu 24.04.4 LTS</td><td>内核 <code>6.6.87.2-microsoft-standard-WSL2</code></td></tr>
+            <tr><td>Node.js</td><td>v22.22.0</td><td>满足项目 <code>^22.19.0 || &gt;=24.0.0</code> 要求。</td></tr>
+            <tr><td>包管理器</td><td>pnpm 11.7.0 / Corepack 0.34.0</td><td>与仓库 <code>packageManager: pnpm@11.7.0</code> 对齐。</td></tr>
+            <tr><td>版本管理</td><td>nvm 0.40.1</td><td>用于载入固定 Node 运行时。</td></tr>
+            <tr><td>Git 提交</td><td><code>c291e7961a515f6d7af9304e7fd1d257929aef26</code></td><td>官方仓库浅克隆的部署基线。</td></tr>
+            <tr><td>磁盘</td><td>根文件系统 1007G；已用 41G；可用 916G</td><td>采集时占用率约 5%。</td></tr>
+          </tbody>
+        </table>
+        <p>上游源码：<a href="https://github.com/deepseek-ai/deepseek-harness">deepseek-ai/deepseek-harness</a>。</p>
+      </section>
+
+      <section id="topology">
+        <h2>3. 部署拓扑</h2>
+        <div class="architecture" role="img" aria-label="DeepSeek Harness WSL 部署拓扑">
+          <div class="flow">
+            <div class="node"><b>Windows 浏览器</b><span>http://127.0.0.1:3080</span></div>
+            <div class="arrow">→</div>
+            <div class="node"><b>WSL localhost 转发</b><span>仅本机访问</span></div>
+            <div class="arrow">→</div>
+            <div class="node"><b>DSH Web / Node</b><span>127.0.0.1:3080<br>进程令牌鉴权</span></div>
+            <div class="arrow">→</div>
+            <div class="node"><b>Harness 工作区</b><span>CLI · Host · Client · Web</span></div>
+            <div class="arrow">↔</div>
+            <div class="node"><b>本地状态</b><span>~/.dsh/profiles/web<br>凭据仅本机保存</span></div>
+          </div>
+        </div>
+        <div class="grid grid-3" style="margin-top:13px">
+          <div class="card"><div class="label">源码与构建</div><div class="value" style="font-size:15px">/home/kevin/apps/deepseek-harness</div><div class="detail">WSL Linux 原生文件系统</div></div>
+          <div class="card"><div class="label">pnpm Store</div><div class="value" style="font-size:15px">~/.local/share/pnpm/store/v11</div><div class="detail">显式指定，避免跨文件系统问题</div></div>
+          <div class="card"><div class="label">Web Profile</div><div class="value" style="font-size:15px">~/.dsh/profiles/web</div><div class="detail">运行时配置与 profile 包</div></div>
+        </div>
+      </section>
+
+      <section id="process">
+        <h2>4. 完整部署过程</h2>
+        <div class="timeline">
+          <article class="step" data-step="1">
+            <h3>检查 WSL 与目标环境</h3>
+            <p>确认 Ubuntu 发行版、WSL2 内核、用户目录和磁盘空间可用；将部署目录选在 <code>/home/kevin/apps</code>，以获得 Linux 原生权限语义与更稳定的 Node 安装性能。</p>
+            <pre><code>wsl.exe -d Ubuntu -- bash -lc 'grep PRETTY_NAME /etc/os-release; uname -r; df -h /'</code></pre>
+            <p class="result">结果：Ubuntu 24.04.4 LTS，WSL2 内核正常，磁盘空间充足。</p>
+          </article>
+
+          <article class="step" data-step="2">
+            <h3>确认项目运行时要求</h3>
+            <p>根据仓库 <code>package.json</code> 校验 Node 与 pnpm 版本，避免因主版本不一致引发 lockfile 或原生模块问题。</p>
+            <pre><code># 项目声明
+engines.node = "^22.19.0 || &gt;=24.0.0"
+packageManager = "pnpm@11.7.0"
+
+# 实际环境
+node --version   # v22.22.0
+pnpm --version   # 11.7.0</code></pre>
+            <p class="result">结果：工具链与仓库声明一致。</p>
+          </article>
+
+          <article class="step" data-step="3">
+            <h3>获取官方源码</h3>
+            <p>首次完整克隆在传输约 109 MB 后长时间无进展。停止该次任务创建的残留目录，经目标路径复核后改用浅克隆，降低传输量并保留部署所需的最新快照。</p>
+            <pre><code>mkdir -p /home/kevin/apps
+git clone --depth 1 https://github.com/deepseek-ai/deepseek-harness.git \
+  /home/kevin/apps/deepseek-harness
+git -C /home/kevin/apps/deepseek-harness rev-parse HEAD</code></pre>
+            <p class="result">结果：源码获取成功，提交为 <code>c291e7961a515f6d7af9304e7fd1d257929aef26</code>。</p>
+          </article>
+
+          <article class="step" data-step="4">
+            <h3>启用 Corepack 与固定 pnpm</h3>
+            <p>通过 nvm 使用 Node 22.22.0，并启用项目指定的 pnpm 11.7.0。所有后续命令均先载入 <code>~/.nvm/nvm.sh</code>。</p>
+            <pre><code>. /home/kevin/.nvm/nvm.sh
+corepack enable
+corepack prepare pnpm@11.7.0 --activate
+node --version
+pnpm --version</code></pre>
+          </article>
+
+          <article class="step" data-step="5">
+            <h3>首次依赖安装与网络诊断</h3>
+            <p>初次使用镜像源安装时，原生模块 tarball 出现下载错误 23/超时；切换 npm 官方源后，在较高并发下仍可复现。随后单独下载约 8.5 MB 的 <code>@rolldown/binding-linux-x64-gnu</code> 包成功，证明基础网络和磁盘写入正常，问题更接近并发下载/存储路径组合。</p>
+            <p class="result">判断：不是项目 lockfile 损坏，也不是磁盘不足；采用 WSL 内本地 store 和单并发安装是最小、可复现的处置。</p>
+          </article>
+
+          <article class="step" data-step="6">
+            <h3>清理未完成产物并低并发重装</h3>
+            <p>仅清理本次克隆目录中的未跟踪生成物，保留 Git 追踪内容；随后明确指定 WSL 内 pnpm store、官方 registry 及下载/子进程并发度。</p>
+            <pre><code>cd /home/kevin/apps/deepseek-harness
+git clean -fdx
+
+pnpm install --frozen-lockfile \
+  --store-dir /home/kevin/.local/share/pnpm/store/v11 \
+  --registry=https://registry.npmjs.org \
+  --network-concurrency=1 \
+  --child-concurrency=1</code></pre>
+            <p class="result">结果：1260 个包安装成功，用时约 10 分 15 秒；lockfile 供应链策略检查通过。darwin/arm64 工作区与循环依赖提示属于跨平台 monorepo 的预期告警。</p>
+          </article>
+
+          <article class="step" data-step="7">
+            <h3>执行全量构建</h3>
+            <p>运行根项目构建脚本，依次完成 Linux x64 glibc 系统 addon、Host、Client、CLI 和 Web 前端构建。</p>
+            <pre><code>cd /home/kevin/apps/deepseek-harness
+. /home/kevin/.nvm/nvm.sh
+pnpm run build</code></pre>
+            <p class="result">结果：构建退出码为 0；CLI 入口和 Web 静态产物均生成。仅出现弃用、插件耗时、bundle/chunk 大小类非阻断提示。</p>
+          </article>
+
+          <article class="step" data-step="8">
+            <h3>验证 CLI 与 Web 子命令</h3>
+            <pre><code>pnpm dsh --help
+pnpm dsh web --help</code></pre>
+            <p class="result">结果：主 CLI 帮助正常；Web 子命令支持 <code>--host</code>、<code>--port</code>、<code>--no-open</code> 和 <code>--trusted-host</code>。</p>
+          </article>
+
+          <article class="step" data-step="9">
+            <h3>启动 Web 服务</h3>
+            <p>采用本地回环地址启动，关闭自动拉起浏览器，并固定端口 3080。</p>
+            <pre><code>cd /home/kevin/apps/deepseek-harness
+. /home/kevin/.nvm/nvm.sh
+pnpm dsh web --no-open --host 127.0.0.1 --port 3080</code></pre>
+            <p class="result">结果：Node 进程监听 <code>127.0.0.1:3080</code>；启动时生成的一次性/进程级访问令牌已从本报告中移除。</p>
+          </article>
+
+          <article class="step" data-step="10">
+            <h3>执行鉴权与页面验证</h3>
+            <p>直接请求根路径返回 HTTP 401，证明匿名访问被拒绝；通过启动 URL 完成令牌交换并获得会话 Cookie 后，根页面返回 HTTP 200、<code>text/html</code>，响应体约 27,923 字节。</p>
+            <pre><code># 匿名检查（预期 401）
+curl -i http://127.0.0.1:3080/
+
+# 浏览器首次访问形式（报告内故意脱敏）
+http://127.0.0.1:3080/?token=&lt;redacted-process-token&gt;</code></pre>
+            <p class="result">结果：访问控制与 Web UI 均验证通过。</p>
+          </article>
+        </div>
+      </section>
+
+      <section id="troubleshooting">
+        <h2>5. 故障与处置记录</h2>
+        <table>
+          <thead><tr><th>现象</th><th>判断/证据</th><th>处置</th><th>结果</th></tr></thead>
+          <tbody>
+            <tr><td>从受限上下文访问 WSL 出现权限错误</td><td>属于宿主侧 WSL 调用授权边界，不是 Ubuntu 内部权限问题。</td><td>在经授权的宿主执行上下文中调用 <code>wsl.exe</code>。</td><td><span class="badge ok">已解决</span></td></tr>
+            <tr><td>完整 Git clone 长时间停滞</td><td>传输约 109 MB 后无进展。</td><td>停止未完成克隆，复核并清理任务创建目录，改用 <code>--depth 1</code>。</td><td><span class="badge ok">已解决</span></td></tr>
+            <tr><td>pnpm 原生 tarball 错误 23/超时</td><td>镜像源与官方源在高并发下均可触发；单包直连下载成功。</td><td>WSL 本地 store + npm 官方 registry + 网络和子进程并发均设为 1。</td><td><span class="badge ok">已解决</span></td></tr>
+            <tr><td>安装阶段出现 pre-build bin 警告</td><td>相关 CLI 文件尚待项目构建生成。</td><td>完成 <code>pnpm run build</code> 后复核入口文件。</td><td><span class="badge ok">已解决</span></td></tr>
+            <tr><td>匿名访问首页返回 401</td><td>这是进程令牌鉴权的预期行为。</td><td>首次使用启动日志中的令牌 URL，交换会话 Cookie 后访问。</td><td><span class="badge info">符合设计</span></td></tr>
+            <tr><td>模型调用可能提示缺少凭据</td><td>部署完成本身不自动注入 DeepSeek API Key。</td><td>在 Web UI 的 Settings → Models 中配置；无需把密钥写入本报告。</td><td><span class="badge warn">按需配置</span></td></tr>
+          </tbody>
+        </table>
+      </section>
+
+      <section id="verification">
+        <h2>6. 验证证据与验收结果</h2>
+        <table>
+          <thead><tr><th>验收项</th><th>证据</th><th>结论</th></tr></thead>
+          <tbody>
+            <tr><td>源码完整性</td><td>Git 工作区 <code>## master...origin/master</code>，无未提交变更。</td><td><span class="badge ok">通过</span></td></tr>
+            <tr><td>版本可追溯</td><td>完整提交 SHA：<code>c291e7961a515f6d7af9304e7fd1d257929aef26</code></td><td><span class="badge ok">通过</span></td></tr>
+            <tr><td>运行时匹配</td><td>Node v22.22.0；pnpm 11.7.0。</td><td><span class="badge ok">通过</span></td></tr>
+            <tr><td>CLI 构建产物</td><td><code>apps/cli/lib/bin.js</code> 存在且可执行。</td><td><span class="badge ok">通过</span></td></tr>
+            <tr><td>Web 构建产物</td><td><code>apps/web/dist/index.html</code> 存在。</td><td><span class="badge ok">通过</span></td></tr>
+            <tr><td>CLI 可用性</td><td><code>pnpm dsh --help</code> 与 <code>pnpm dsh web --help</code> 均正常输出。</td><td><span class="badge ok">通过</span></td></tr>
+            <tr><td>端口监听</td><td><code>127.0.0.1:3080</code>，Node PID 2144，LISTEN。</td><td><span class="badge ok">通过</span></td></tr>
+            <tr><td>匿名访问控制</td><td>未带会话访问根路径返回 HTTP 401。</td><td><span class="badge ok">通过</span></td></tr>
+            <tr><td>认证后页面</td><td>令牌交换并建立 Cookie 后返回 HTTP 200、HTML，约 27,923 bytes。</td><td><span class="badge ok">通过</span></td></tr>
+            <tr><td>Web Profile</td><td><code>~/.dsh/profiles/web/package.json</code> 存在。</td><td><span class="badge ok">通过</span></td></tr>
+          </tbody>
+        </table>
+      </section>
+
+      <section id="current">
+        <h2>7. 当前运行状态（2026-09-15 复核）</h2>
+        <div class="grid grid-3">
+          <div class="card"><div class="label">监听状态</div><div class="value">LISTEN</div><div class="detail">127.0.0.1:3080 · PID 2144</div></div>
+          <div class="card"><div class="label">匿名 HTTP</div><div class="value">401</div><div class="detail">鉴权门禁生效</div></div>
+          <div class="card"><div class="label">凭据状态</div><div class="value">文件存在</div><div class="detail">仅检查存在性，未读取内容</div></div>
+        </div>
+        <div class="callout safe"><strong>当前可用：</strong>在本机浏览器中访问 <code>http://127.0.0.1:3080/</code>。若浏览器尚无有效会话，需要使用当前服务启动日志生成的令牌 URL 进行首次鉴权。</div>
+        <p>注意：进程 PID、访问令牌和会话会随重启变化。本节记录的是报告采集时的快照，不应作为长期监控数据。</p>
+      </section>
+
+      <section id="operations">
+        <h2>8. 日常运维操作</h2>
+        <h3>8.1 启动</h3>
+        <pre><code>wsl.exe -d Ubuntu -- bash -lc '. /home/kevin/.nvm/nvm.sh; cd /home/kevin/apps/deepseek-harness; pnpm dsh web --no-open --host 127.0.0.1 --port 3080'</code></pre>
+        <p>命令会占用当前终端并打印本次进程的令牌 URL。请勿将完整 URL 转发、截图到公共渠道或写入日志归档。</p>
+
+        <h3>8.2 停止与检查</h3>
+        <p>在承载服务的终端按 <code>Ctrl+C</code> 做优雅停止。检查端口：</p>
+        <pre><code>wsl.exe -d Ubuntu -- bash -lc 'ss -ltnp "sport = :3080"'</code></pre>
+
+        <h3>8.3 更新源码并重建</h3>
+        <ol>
+          <li>先停止当前 Web 进程。</li>
+          <li>确认工作区没有需要保留的本地修改：<code>git status --short</code>。</li>
+          <li>执行 <code>git pull --ff-only</code> 获取上游变更。</li>
+          <li>使用已验证的低并发参数同步依赖，再执行全量构建。</li>
+          <li>重新启动服务，并重复端口、401 和浏览器页面检查。</li>
+        </ol>
+        <pre><code>cd /home/kevin/apps/deepseek-harness
+. /home/kevin/.nvm/nvm.sh
+git pull --ff-only
+pnpm install --frozen-lockfile \
+  --store-dir /home/kevin/.local/share/pnpm/store/v11 \
+  --registry=https://registry.npmjs.org \
+  --network-concurrency=1 \
+  --child-concurrency=1
+pnpm run build</code></pre>
+
+        <h3>8.4 模型凭据</h3>
+        <p>在 Web UI 中进入 <strong>Settings → Models</strong> 配置或更新 API Key。当前仅确认凭据文件存在，未读取、未复制、未写入报告。密钥更新通常不需要重新构建项目。</p>
+
+        <h3>8.5 尚未实施的增强</h3>
+        <ul>
+          <li>未配置 systemd 用户服务、健康检查守护或自动重启。</li>
+          <li>未开放局域网访问，也未配置反向代理、TLS 或外部域名。</li>
+          <li>未配置集中日志、指标监控或备份策略。</li>
+        </ul>
+      </section>
+
+      <section id="security">
+        <h2>9. 安全与敏感信息处理</h2>
+        <ul>
+          <li><strong>令牌脱敏：</strong>部署时生成的真实进程令牌未出现在本 HTML，统一表示为 <code>&lt;redacted-process-token&gt;</code>。</li>
+          <li><strong>凭据最小暴露：</strong>只检查 <code>~/.dsh/.credentials.yaml</code> 是否存在，未打开或导出文件内容。</li>
+          <li><strong>网络最小暴露：</strong>服务绑定 <code>127.0.0.1</code>，默认不对局域网其他设备开放。</li>
+          <li><strong>匿名拒绝：</strong>HTTP 401 属于预期保护；不要通过关闭鉴权来绕过。</li>
+          <li><strong>报告边界：</strong>HTML 内不包含密码、API Key、Cookie、访问令牌或完整启动日志中的敏感查询参数。</li>
+        </ul>
+        <div class="callout warnbox">如果后续需要将服务开放到局域网或公网，应先引入 TLS、可信反向代理、访问控制、令牌轮换和最小权限策略；当前部署不应直接暴露到公网。</div>
+      </section>
+
+      <section id="paths">
+        <h2>10. 关键文件与目录</h2>
+        <dl class="path-list">
+          <dt>项目根目录</dt><dd><code>/home/kevin/apps/deepseek-harness</code></dd>
+          <dt>CLI 入口</dt><dd><code>/home/kevin/apps/deepseek-harness/apps/cli/lib/bin.js</code></dd>
+          <dt>Web 构建入口</dt><dd><code>/home/kevin/apps/deepseek-harness/apps/web/dist/index.html</code></dd>
+          <dt>pnpm Store</dt><dd><code>/home/kevin/.local/share/pnpm/store/v11</code></dd>
+          <dt>Web Profile</dt><dd><code>/home/kevin/.dsh/profiles/web/package.json</code></dd>
+          <dt>凭据文件</dt><dd><code>/home/kevin/.dsh/.credentials.yaml</code>（敏感，不应导出）</dd>
+          <dt>本报告</dt><dd><code>D:\Projects\DeepSeekHarness-WSL-部署过程报告-20260915.html</code></dd>
+        </dl>
+      </section>
+
+      <section id="appendix">
+        <h2>11. 复核命令附录</h2>
+        <p>以下命令均为只读状态检查，不会修改部署：</p>
+        <pre><code>wsl.exe -d Ubuntu -- bash -lc '
+  . /home/kevin/.nvm/nvm.sh
+  grep -E "^(PRETTY_NAME|VERSION_ID)=" /etc/os-release
+  uname -r
+  node --version
+  pnpm --version
+  git -C /home/kevin/apps/deepseek-harness rev-parse HEAD
+  git -C /home/kevin/apps/deepseek-harness status --short --branch
+  test -x /home/kevin/apps/deepseek-harness/apps/cli/lib/bin.js &amp;&amp; echo cli=ready
+  test -f /home/kevin/apps/deepseek-harness/apps/web/dist/index.html &amp;&amp; echo web=ready
+  du -sh /home/kevin/apps/deepseek-harness
+  ss -ltnp "sport = :3080"
+  curl -sS -o /dev/null -w "HTTP=%{http_code}\n" http://127.0.0.1:3080/
+  df -h /
+'</code></pre>
+        <div class="callout"><strong>可审计性说明：</strong>报告区分了“部署时验证结果”和“生成报告时的状态快照”。其中 HTTP 200 是部署阶段已完成的认证会话验证；当前快照使用无凭据请求，因此预期显示 401。</div>
+      </section>
+    </main>
+  </div>
+
+  <footer class="footer">
+    DeepSeek Harness WSL2 部署过程报告 · 单文件离线版 · 2026-09-15<br>
+    本文档不包含任何可用凭据或访问令牌。
+  </footer>
+</body>
+</html>
