@@ -1,0 +1,747 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Codex 核心数据对象、关键属性及其关系的 UML 可视化说明。">
+  <title>Codex 核心数据对象与关系 · UML</title>
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%230b1020'/%3E%3Cpath d='M17 20h30v24H17z' fill='none' stroke='%236de4c1' stroke-width='4'/%3E%3Cpath d='M22 27h20M22 34h13' stroke='%23a7b4ff' stroke-width='3'/%3E%3C/svg%3E">
+  <style>
+    :root {
+      --bg: #070b16;
+      --panel: #0e1527;
+      --panel-2: #111b31;
+      --line: #263553;
+      --line-strong: #435b87;
+      --text: #edf3ff;
+      --muted: #9cabc8;
+      --cyan: #61e7cb;
+      --blue: #8da2ff;
+      --amber: #ffc96b;
+      --rose: #ff8fab;
+      --violet: #c29bff;
+      --green: #68d391;
+      --shadow: 0 20px 55px rgba(0, 0, 0, .28);
+      --radius: 20px;
+    }
+
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      margin: 0;
+      color: var(--text);
+      background:
+        radial-gradient(circle at 15% 0%, rgba(97, 231, 203, .09), transparent 28rem),
+        radial-gradient(circle at 92% 8%, rgba(141, 162, 255, .11), transparent 34rem),
+        var(--bg);
+      font-family: "Segoe UI", "Microsoft YaHei", system-ui, sans-serif;
+      font-size: 16px;
+      line-height: 1.65;
+    }
+
+    a { color: inherit; }
+    button { font: inherit; }
+    code, pre { font-family: Consolas, "Cascadia Code", monospace; }
+
+    .topbar {
+      position: sticky;
+      top: 0;
+      z-index: 20;
+      border-bottom: 1px solid rgba(141, 162, 255, .16);
+      background: rgba(7, 11, 22, .88);
+      backdrop-filter: blur(16px);
+    }
+
+    .topbar-inner {
+      max-width: 1460px;
+      margin: 0 auto;
+      padding: 12px 28px;
+      display: flex;
+      align-items: center;
+      gap: 22px;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      min-width: max-content;
+      font-weight: 750;
+      letter-spacing: .02em;
+    }
+
+    .brand-mark {
+      width: 30px;
+      height: 30px;
+      border: 1px solid var(--cyan);
+      border-radius: 8px;
+      display: grid;
+      place-items: center;
+      color: var(--cyan);
+      box-shadow: inset 0 0 16px rgba(97, 231, 203, .08);
+    }
+
+    .topnav {
+      display: flex;
+      gap: 6px;
+      overflow-x: auto;
+      scrollbar-width: none;
+    }
+
+    .topnav a {
+      padding: 7px 11px;
+      border-radius: 999px;
+      color: var(--muted);
+      text-decoration: none;
+      font-size: .88rem;
+      white-space: nowrap;
+    }
+
+    .topnav a:hover, .topnav a:focus-visible {
+      color: var(--text);
+      background: rgba(141, 162, 255, .12);
+      outline: none;
+    }
+
+    .print-btn {
+      margin-left: auto;
+      border: 1px solid var(--line-strong);
+      border-radius: 10px;
+      padding: 7px 12px;
+      color: var(--text);
+      background: var(--panel);
+      cursor: pointer;
+      white-space: nowrap;
+    }
+
+    .print-btn:hover { border-color: var(--cyan); }
+
+    main {
+      width: min(1460px, calc(100% - 40px));
+      margin: 0 auto;
+      padding: 70px 0 96px;
+    }
+
+    .hero {
+      display: grid;
+      grid-template-columns: minmax(0, 1.3fr) minmax(330px, .7fr);
+      gap: 44px;
+      align-items: center;
+      padding: 26px 0 66px;
+    }
+
+    .eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 9px;
+      color: var(--cyan);
+      font-size: .82rem;
+      letter-spacing: .16em;
+      text-transform: uppercase;
+      font-weight: 750;
+    }
+
+    .eyebrow::before {
+      content: "";
+      width: 30px;
+      height: 1px;
+      background: currentColor;
+    }
+
+    h1 {
+      margin: 18px 0 18px;
+      max-width: 930px;
+      font-size: clamp(2.55rem, 6vw, 5.45rem);
+      line-height: 1.04;
+      letter-spacing: -.045em;
+    }
+
+    .hero p {
+      max-width: 850px;
+      margin: 0;
+      color: var(--muted);
+      font-size: clamp(1rem, 1.8vw, 1.2rem);
+    }
+
+    .hero-card {
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      padding: 26px;
+      background: linear-gradient(145deg, rgba(17, 27, 49, .96), rgba(10, 16, 31, .96));
+      box-shadow: var(--shadow);
+    }
+
+    .model-stack {
+      display: grid;
+      gap: 10px;
+    }
+
+    .stack-row {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 12px 14px;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      background: rgba(255, 255, 255, .018);
+    }
+
+    .stack-index {
+      width: 28px;
+      height: 28px;
+      border-radius: 8px;
+      display: grid;
+      place-items: center;
+      color: #07111a;
+      background: var(--cyan);
+      font-weight: 800;
+      font-size: .78rem;
+    }
+
+    .stack-row:nth-child(2) .stack-index { background: var(--blue); }
+    .stack-row:nth-child(3) .stack-index { background: var(--amber); }
+    .stack-row:nth-child(4) .stack-index { background: var(--violet); }
+    .stack-row strong { display: block; font-size: .94rem; }
+    .stack-row span { display: block; color: var(--muted); font-size: .78rem; }
+
+    .principle {
+      margin: 0 0 70px;
+      padding: 24px 28px;
+      border-left: 4px solid var(--cyan);
+      border-radius: 0 14px 14px 0;
+      background: linear-gradient(90deg, rgba(97, 231, 203, .09), rgba(97, 231, 203, .01));
+      font-size: clamp(1.08rem, 2vw, 1.4rem);
+    }
+
+    section { scroll-margin-top: 86px; margin-top: 78px; }
+
+    .section-head {
+      display: grid;
+      grid-template-columns: 100px minmax(0, 1fr);
+      gap: 24px;
+      align-items: start;
+      margin-bottom: 28px;
+    }
+
+    .section-no {
+      color: var(--line-strong);
+      font: 700 2.2rem/1 Consolas, monospace;
+      letter-spacing: -.05em;
+    }
+
+    h2 {
+      margin: 0;
+      font-size: clamp(1.8rem, 3vw, 2.8rem);
+      line-height: 1.15;
+      letter-spacing: -.025em;
+    }
+
+    .section-copy {
+      margin: 8px 0 0;
+      color: var(--muted);
+      max-width: 890px;
+    }
+
+    .card-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 16px;
+    }
+
+    .entity-card {
+      position: relative;
+      overflow: hidden;
+      min-height: 205px;
+      padding: 22px;
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      background: linear-gradient(155deg, rgba(17, 27, 49, .98), rgba(12, 18, 34, .98));
+    }
+
+    .entity-card::after {
+      content: "";
+      position: absolute;
+      inset: 0 auto 0 0;
+      width: 3px;
+      background: var(--accent, var(--cyan));
+    }
+
+    .entity-type {
+      color: var(--accent, var(--cyan));
+      font: 700 .75rem/1.2 Consolas, monospace;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+    }
+
+    .entity-card h3 {
+      margin: 8px 0 12px;
+      font-size: 1.28rem;
+    }
+
+    .entity-card p {
+      margin: 0 0 12px;
+      color: var(--muted);
+      font-size: .91rem;
+    }
+
+    .chips { display: flex; flex-wrap: wrap; gap: 6px; }
+    .chip {
+      padding: 4px 8px;
+      border: 1px solid var(--line);
+      border-radius: 7px;
+      color: #c7d3eb;
+      background: rgba(255,255,255,.025);
+      font: 400 .72rem/1.3 Consolas, monospace;
+    }
+
+    .diagram-shell {
+      overflow: hidden;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background:
+        linear-gradient(rgba(38, 53, 83, .16) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(38, 53, 83, .16) 1px, transparent 1px),
+        #0a1020;
+      background-size: 28px 28px;
+      box-shadow: var(--shadow);
+    }
+
+    .diagram-title {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      padding: 16px 20px;
+      border-bottom: 1px solid var(--line);
+      background: rgba(14, 21, 39, .93);
+    }
+
+    .diagram-title strong { font-size: .96rem; }
+    .diagram-title span { color: var(--muted); font: .76rem Consolas, monospace; }
+    .diagram-scroll { overflow-x: auto; padding: 16px; }
+    svg.uml { display: block; width: 100%; min-width: 1050px; height: auto; }
+
+    .legend {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 14px;
+      padding: 12px 20px 18px;
+      color: var(--muted);
+      font-size: .8rem;
+    }
+
+    .legend span { display: inline-flex; align-items: center; gap: 7px; }
+    .legend i { width: 18px; height: 3px; background: var(--cyan); }
+    .legend span:nth-child(2) i { background: var(--blue); }
+    .legend span:nth-child(3) i { background: var(--amber); }
+    .legend span:nth-child(4) i { background: var(--violet); }
+
+    .matrix-wrap {
+      overflow-x: auto;
+      border: 1px solid var(--line);
+      border-radius: 16px;
+    }
+
+    table { width: 100%; border-collapse: collapse; min-width: 980px; }
+    th, td { padding: 15px 16px; text-align: left; border-bottom: 1px solid var(--line); vertical-align: top; }
+    th { color: var(--cyan); background: var(--panel-2); font-size: .82rem; letter-spacing: .04em; }
+    td { color: #d7e0f1; font-size: .9rem; }
+    td:first-child { font-weight: 700; color: var(--text); }
+    tbody tr:last-child td { border-bottom: 0; }
+    tbody tr:hover { background: rgba(141, 162, 255, .045); }
+
+    .rule-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 16px;
+    }
+
+    .rule {
+      padding: 22px;
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      background: var(--panel);
+    }
+
+    .rule b { display: block; margin-bottom: 8px; color: var(--cyan); }
+    .rule p { margin: 0; color: var(--muted); }
+
+    .instance-layout {
+      display: grid;
+      grid-template-columns: minmax(0, 1.4fr) minmax(320px, .6fr);
+      gap: 18px;
+    }
+
+    .fact-panel {
+      padding: 22px;
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      background: var(--panel);
+    }
+
+    .fact-panel h3 { margin: 0 0 16px; }
+    .fact {
+      padding: 12px 0;
+      border-top: 1px solid var(--line);
+    }
+    .fact:first-of-type { border-top: 0; }
+    .fact span { display: block; color: var(--muted); font-size: .78rem; }
+    .fact code { display: block; margin-top: 3px; color: #dfe7f8; font-size: .82rem; overflow-wrap: anywhere; }
+
+    .callout {
+      margin-top: 18px;
+      padding: 16px;
+      border: 1px solid rgba(255, 201, 107, .35);
+      border-radius: 12px;
+      color: #ffe3aa;
+      background: rgba(255, 201, 107, .07);
+      font-size: .88rem;
+    }
+
+    details {
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      background: var(--panel);
+    }
+    summary { cursor: pointer; padding: 16px 18px; font-weight: 700; }
+    details pre {
+      margin: 0;
+      max-height: 500px;
+      overflow: auto;
+      padding: 18px;
+      border-top: 1px solid var(--line);
+      color: #c9d7ef;
+      background: #080d19;
+      font-size: .78rem;
+      line-height: 1.55;
+    }
+
+    footer {
+      margin-top: 76px;
+      padding-top: 24px;
+      border-top: 1px solid var(--line);
+      display: flex;
+      justify-content: space-between;
+      gap: 20px;
+      color: var(--muted);
+      font-size: .82rem;
+    }
+
+    @media (max-width: 1050px) {
+      .hero, .instance-layout { grid-template-columns: 1fr; }
+      .card-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .topnav { display: none; }
+    }
+
+    @media (max-width: 690px) {
+      main { width: min(100% - 24px, 1460px); padding-top: 42px; }
+      .topbar-inner { padding: 10px 12px; }
+      .brand span:last-child { display: none; }
+      .hero { gap: 28px; padding-bottom: 42px; }
+      .section-head { grid-template-columns: 1fr; gap: 8px; }
+      .card-grid, .rule-grid { grid-template-columns: 1fr; }
+      .section-no { font-size: 1.2rem; }
+      footer { flex-direction: column; }
+    }
+
+    @media print {
+      :root { --bg: #fff; --panel: #fff; --panel-2: #f3f5f8; --line: #ccd3df; --text: #152033; --muted: #536176; }
+      body { background: #fff; color: #152033; }
+      .topbar, .print-btn { display: none; }
+      main { width: 100%; padding: 20px; }
+      .hero { padding-top: 10px; }
+      .hero-card, .entity-card, .rule, .fact-panel, details { box-shadow: none; background: #fff; break-inside: avoid; }
+      .diagram-shell { box-shadow: none; break-inside: avoid; background: #fff; }
+      section { margin-top: 44px; }
+      .chip, td { color: #28364a; }
+    }
+  </style>
+</head>
+<body>
+  <header class="topbar">
+    <div class="topbar-inner">
+      <div class="brand"><span class="brand-mark">U</span><span>Codex Domain UML</span></div>
+      <nav class="topnav" aria-label="页面目录">
+        <a href="#entities">核心对象</a>
+        <a href="#uml">关系总图</a>
+        <a href="#matrix">属性矩阵</a>
+        <a href="#instance">当前实例</a>
+        <a href="#rules">业务规则</a>
+        <a href="#source">UML源码</a>
+      </nav>
+      <button class="print-btn" type="button" onclick="window.print()">打印 / PDF</button>
+    </div>
+  </header>
+
+  <main>
+    <header class="hero">
+      <div>
+        <span class="eyebrow">Conceptual Domain Model · 2026-09-17</span>
+        <h1>Codex 核心数据对象与关系</h1>
+        <p>以 UML 视角解释分组、项目、文件夹、工作目录、任务、对话、Git 仓库与工作树之间的边界和联系，并映射到当前 DeepSeek Harness 项目。</p>
+      </div>
+      <aside class="hero-card" aria-label="四层模型">
+        <div class="model-stack">
+          <div class="stack-row"><span class="stack-index">01</span><div><strong>导航层</strong><span>分组与有序导航条目</span></div></div>
+          <div class="stack-row"><span class="stack-index">02</span><div><strong>组织层</strong><span>项目、任务与对话</span></div></div>
+          <div class="stack-row"><span class="stack-index">03</span><div><strong>环境层</strong><span>主机、工作空间与目录</span></div></div>
+          <div class="stack-row"><span class="stack-index">04</span><div><strong>执行层</strong><span>轮次、工具、文件与产物</span></div></div>
+        </div>
+      </aside>
+    </header>
+
+    <div class="principle"><strong>一句话模型：</strong>分组决定“显示在哪里”，项目决定“从哪里开始”，任务记录“具体做了什么”，文件夹保存“真实内容”。</div>
+
+    <section id="entities">
+      <div class="section-head">
+        <div class="section-no">01</div>
+        <div><h2>核心数据对象</h2><p class="section-copy">对象按职责着色。属性标签展示理解其行为时最关键的字段，而不是内部实现的完整字段集合。</p></div>
+      </div>
+      <div class="card-grid">
+        <article class="entity-card" style="--accent:var(--cyan)"><span class="entity-type">Navigation</span><h3>SidebarSection · 分组</h3><p>左侧栏的展示容器，只负责组织项目与任务。</p><div class="chips"><span class="chip">sectionId</span><span class="chip">name</span><span class="chip">sectionType</span><span class="chip">displayOrder</span></div></article>
+        <article class="entity-card" style="--accent:var(--cyan)"><span class="entity-type">Navigation</span><h3>SectionEntry · 导航条目</h3><p>维护分组中的目标引用和显示顺序。</p><div class="chips"><span class="chip">targetType</span><span class="chip">targetId</span><span class="chip">displayOrder</span></div></article>
+        <article class="entity-card" style="--accent:var(--blue)"><span class="entity-type">Organization</span><h3>Project · 项目</h3><p>保存的工作入口，为新任务提供默认目录和主机。</p><div class="chips"><span class="chip">projectId</span><span class="chip">label</span><span class="chip">path</span><span class="chip">hostId</span><span class="chip">isGitRepository</span></div></article>
+        <article class="entity-card" style="--accent:var(--blue)"><span class="entity-type">Organization</span><h3>CodexTask · 任务</h3><p>一次持续的代理工作会话，保存执行上下文和状态。</p><div class="chips"><span class="chip">threadId</span><span class="chip">projectId?</span><span class="chip">cwd</span><span class="chip">status</span><span class="chip">model</span></div></article>
+        <article class="entity-card" style="--accent:var(--blue)"><span class="entity-type">Organization</span><h3>ChatConversation · 对话</h3><p>以消息交流为主的会话，可不具备本地文件执行环境。</p><div class="chips"><span class="chip">conversationId</span><span class="chip">title</span><span class="chip">projectId?</span><span class="chip">updatedAt</span></div></article>
+        <article class="entity-card" style="--accent:var(--amber)"><span class="entity-type">Environment</span><h3>Folder / CWD · 文件夹</h3><p>操作系统中的真实目录；CWD 是任务执行命令的起点。</p><div class="chips"><span class="chip">absolutePath</span><span class="chip">exists</span><span class="chip">writable</span></div></article>
+        <article class="entity-card" style="--accent:var(--amber)"><span class="entity-type">Environment</span><h3>Workspace · 工作空间</h3><p>任务使用的执行环境，可对应本地目录或独立 Git Worktree。</p><div class="chips"><span class="chip">workspaceId</span><span class="chip">rootPath</span><span class="chip">environmentType</span></div></article>
+        <article class="entity-card" style="--accent:var(--violet)"><span class="entity-type">Version Control</span><h3>GitRepository · 仓库</h3><p>带版本历史的代码目录，可位于项目根目录或其子目录。</p><div class="chips"><span class="chip">rootPath</span><span class="chip">remoteUrl</span><span class="chip">branch</span><span class="chip">headCommit</span><span class="chip">dirty</span></div></article>
+        <article class="entity-card" style="--accent:var(--violet)"><span class="entity-type">Version Control</span><h3>GitWorktree · 工作树</h3><p>从同一仓库派生的独立检出目录，支持隔离的并行任务。</p><div class="chips"><span class="chip">path</span><span class="chip">branch</span><span class="chip">baseRevision</span><span class="chip">status</span></div></article>
+      </div>
+    </section>
+
+    <section id="uml">
+      <div class="section-head">
+        <div class="section-no">02</div>
+        <div><h2>UML 关系总图</h2><p class="section-copy">重点体现导航引用、项目绑定、执行环境、消息组合关系，以及 Git 仓库与工作树的派生关系。</p></div>
+      </div>
+      <div class="diagram-shell">
+        <div class="diagram-title"><strong>Codex Conceptual Class Diagram</strong><span>横向滚动查看完整图</span></div>
+        <div class="diagram-scroll">
+          <svg class="uml" viewBox="0 0 1320 790" role="img" aria-labelledby="uml-title uml-desc">
+            <title id="uml-title">Codex核心数据对象UML类图</title>
+            <desc id="uml-desc">展示分组、项目、任务、工作空间、目录、Git仓库、工作树、交互轮次和产物之间的关系。</desc>
+            <defs>
+              <marker id="arrow" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto"><path d="M0,0 L0,6 L9,3 z" fill="#7087b3"/></marker>
+              <marker id="diamond" markerWidth="12" markerHeight="12" refX="2" refY="5" orient="auto"><path d="M0,5 L5,1 L10,5 L5,9 z" fill="#61e7cb"/></marker>
+              <style>
+                .pkg{fill:#0d1629;stroke:#263553;stroke-width:1.5}.pkg-title{fill:#93a7cc;font:700 14px 'Segoe UI','Microsoft YaHei',sans-serif;letter-spacing:1px}.box{fill:#111b31;stroke-width:1.7}.nav{stroke:#61e7cb}.org{stroke:#8da2ff}.env{stroke:#ffc96b}.git{stroke:#c29bff}.exec{stroke:#ff8fab}.name{fill:#edf3ff;font:700 15px 'Segoe UI','Microsoft YaHei',sans-serif}.type{font:700 10px Consolas,monospace;letter-spacing:1px}.attr{fill:#aab8d2;font:12px Consolas,monospace}.sep{stroke:#263553}.rel{fill:none;stroke:#7087b3;stroke-width:1.5;marker-end:url(#arrow)}.comp{fill:none;stroke:#61e7cb;stroke-width:1.7;marker-start:url(#diamond);marker-end:url(#arrow)}.label{fill:#9cabc8;font:11px 'Segoe UI','Microsoft YaHei',sans-serif}.mult{fill:#ffc96b;font:11px Consolas,monospace}.note{fill:#10192d;stroke:#435b87;stroke-dasharray:5 4}.noteText{fill:#c7d3eb;font:12px 'Segoe UI','Microsoft YaHei',sans-serif}
+              </style>
+            </defs>
+
+            <rect class="pkg" x="20" y="25" width="285" height="335" rx="16"/><text class="pkg-title" x="40" y="53">NAVIGATION · 导航层</text>
+            <rect class="pkg" x="330" y="25" width="350" height="335" rx="16"/><text class="pkg-title" x="350" y="53">ORGANIZATION · 组织层</text>
+            <rect class="pkg" x="705" y="25" width="595" height="335" rx="16"/><text class="pkg-title" x="725" y="53">ENVIRONMENT &amp; GIT · 环境与版本控制</text>
+            <rect class="pkg" x="20" y="390" width="980" height="370" rx="16"/><text class="pkg-title" x="40" y="418">EXECUTION &amp; CONTENT · 执行与内容</text>
+
+            <g transform="translate(45 78)"><rect class="box nav" width="235" height="112" rx="10"/><text class="type" fill="#61e7cb" x="14" y="20">CLASS</text><text class="name" x="14" y="43">SidebarSection</text><line class="sep" x1="0" y1="54" x2="235" y2="54"/><text class="attr" x="14" y="74">+ sectionId: UUID</text><text class="attr" x="14" y="92">+ name: String</text><text class="attr" x="14" y="108">+ sectionType: Enum</text></g>
+            <g transform="translate(45 222)"><rect class="box nav" width="235" height="112" rx="10"/><text class="type" fill="#61e7cb" x="14" y="20">ASSOCIATION CLASS</text><text class="name" x="14" y="43">SectionEntry</text><line class="sep" x1="0" y1="54" x2="235" y2="54"/><text class="attr" x="14" y="74">+ targetType: Enum</text><text class="attr" x="14" y="92">+ targetId: String</text><text class="attr" x="14" y="108">+ displayOrder: Integer</text></g>
+
+            <g transform="translate(355 78)"><rect class="box org" width="300" height="130" rx="10"/><text class="type" fill="#8da2ff" x="14" y="20">CLASS</text><text class="name" x="14" y="43">Project</text><line class="sep" x1="0" y1="54" x2="300" y2="54"/><text class="attr" x="14" y="74">+ projectId: String</text><text class="attr" x="14" y="92">+ label: String</text><text class="attr" x="14" y="110">+ path: AbsolutePath</text><text class="attr" x="14" y="126">+ isGitRepository: Boolean</text></g>
+            <g transform="translate(355 232)"><rect class="box org" width="300" height="104" rx="10"/><text class="type" fill="#8da2ff" x="14" y="20">ABSTRACT CLASS</text><text class="name" x="14" y="43">Thread</text><line class="sep" x1="0" y1="54" x2="300" y2="54"/><text class="attr" x="14" y="74">+ threadId · title · summary</text><text class="attr" x="14" y="92">+ kind · status · updatedAt</text></g>
+
+            <g transform="translate(730 78)"><rect class="box env" width="250" height="112" rx="10"/><text class="type" fill="#ffc96b" x="14" y="20">CLASS</text><text class="name" x="14" y="43">Folder</text><line class="sep" x1="0" y1="54" x2="250" y2="54"/><text class="attr" x="14" y="74">+ path: AbsolutePath</text><text class="attr" x="14" y="92">+ exists: Boolean</text><text class="attr" x="14" y="108">+ writable: Boolean</text></g>
+            <g transform="translate(1015 78)"><rect class="box env" width="250" height="112" rx="10"/><text class="type" fill="#ffc96b" x="14" y="20">CLASS</text><text class="name" x="14" y="43">Workspace</text><line class="sep" x1="0" y1="54" x2="250" y2="54"/><text class="attr" x="14" y="74">+ workspaceId: String</text><text class="attr" x="14" y="92">+ rootPath: AbsolutePath</text><text class="attr" x="14" y="108">+ environmentType: Enum</text></g>
+            <g transform="translate(730 225)"><rect class="box git" width="250" height="112" rx="10"/><text class="type" fill="#c29bff" x="14" y="20">CLASS</text><text class="name" x="14" y="43">GitRepository</text><line class="sep" x1="0" y1="54" x2="250" y2="54"/><text class="attr" x="14" y="74">+ rootPath · remoteUrl</text><text class="attr" x="14" y="92">+ branch · headCommit</text><text class="attr" x="14" y="108">+ dirty: Boolean</text></g>
+            <g transform="translate(1015 225)"><rect class="box git" width="250" height="112" rx="10"/><text class="type" fill="#c29bff" x="14" y="20">CLASS</text><text class="name" x="14" y="43">GitWorktree</text><line class="sep" x1="0" y1="54" x2="250" y2="54"/><text class="attr" x="14" y="74">+ path · branch</text><text class="attr" x="14" y="92">+ baseRevision</text><text class="attr" x="14" y="108">+ status: Enum</text></g>
+
+            <g transform="translate(45 455)"><rect class="box org" width="240" height="112" rx="10"/><text class="type" fill="#8da2ff" x="14" y="20">SUBCLASS</text><text class="name" x="14" y="43">CodexTask</text><line class="sep" x1="0" y1="54" x2="240" y2="54"/><text class="attr" x="14" y="74">+ projectId: String?</text><text class="attr" x="14" y="92">+ hostId · cwd</text><text class="attr" x="14" y="108">+ model · reasoningEffort</text></g>
+            <g transform="translate(45 610)"><rect class="box org" width="240" height="90" rx="10"/><text class="type" fill="#8da2ff" x="14" y="20">SUBCLASS</text><text class="name" x="14" y="43">ChatConversation</text><line class="sep" x1="0" y1="54" x2="240" y2="54"/><text class="attr" x="14" y="74">+ conversationId · projectId?</text></g>
+            <g transform="translate(350 455)"><rect class="box exec" width="210" height="100" rx="10"/><text class="type" fill="#ff8fab" x="14" y="20">COMPOSITE</text><text class="name" x="14" y="43">Turn</text><line class="sep" x1="0" y1="54" x2="210" y2="54"/><text class="attr" x="14" y="74">+ sequence · status</text><text class="attr" x="14" y="92">+ startedAt · completedAt</text></g>
+            <g transform="translate(350 610)"><rect class="box exec" width="210" height="90" rx="10"/><text class="type" fill="#ff8fab" x="14" y="20">COMPOSITE</text><text class="name" x="14" y="43">Message</text><line class="sep" x1="0" y1="54" x2="210" y2="54"/><text class="attr" x="14" y="74">+ role · content · createdAt</text></g>
+            <g transform="translate(630 455)"><rect class="box exec" width="210" height="100" rx="10"/><text class="type" fill="#ff8fab" x="14" y="20">CLASS</text><text class="name" x="14" y="43">ToolCall</text><line class="sep" x1="0" y1="54" x2="210" y2="54"/><text class="attr" x="14" y="74">+ toolName · arguments</text><text class="attr" x="14" y="92">+ status · timestamps</text></g>
+            <g transform="translate(630 610)"><rect class="box exec" width="210" height="90" rx="10"/><text class="type" fill="#ff8fab" x="14" y="20">CLASS</text><text class="name" x="14" y="43">FileChange</text><line class="sep" x1="0" y1="54" x2="210" y2="54"/><text class="attr" x="14" y="74">+ path · changeType</text></g>
+
+            <path class="comp" d="M162 190 L162 222"/><text class="mult" x="170" y="212">0..*</text>
+            <path class="rel" d="M280 267 L330 267 L330 143 L355 143"/><text class="label" x="286" y="255">引用项目</text>
+            <path class="rel" d="M280 288 L330 288 L330 284 L355 284"/><text class="label" x="286" y="306">引用任务</text>
+            <path class="rel" d="M655 143 L730 143"/><text class="label" x="667" y="133">根目录</text><text class="mult" x="709" y="157">1</text>
+            <path class="rel" d="M855 190 L855 225"/><text class="label" x="866" y="211">包含</text><text class="mult" x="830" y="215">0..*</text>
+            <path class="rel" d="M980 281 L1015 281"/><text class="label" x="984" y="269">派生</text>
+            <path class="rel" d="M1140 225 L1140 190"/><text class="label" x="1150" y="211">可基于</text>
+            <path class="rel" d="M505 336 L505 385 L165 385 L165 455"/><text class="label" x="262" y="376">继承</text>
+            <path class="rel" d="M505 336 L505 590 L165 590 L165 610"/><text class="label" x="269" y="581">继承</text>
+            <path class="rel" d="M285 505 L350 505"/><text class="label" x="300" y="494">1..*轮次</text>
+            <path class="comp" d="M455 555 L455 610"/><text class="mult" x="466" y="587">1..*</text>
+            <path class="rel" d="M560 505 L630 505"/><text class="label" x="574" y="494">0..*</text>
+            <path class="rel" d="M735 555 L735 610"/><text class="label" x="746" y="587">产生</text>
+            <path class="rel" d="M285 478 L315 478 L315 370 L1140 370 L1140 337"/><text class="label" x="898" y="360">使用Workspace</text>
+            <path class="rel" d="M285 533 L305 533 L305 715 L875 715 L875 337"/><text class="label" x="850" y="708">cwd指向Folder</text>
+
+            <g transform="translate(1030 455)"><path class="note" d="M0 0 H250 V155 H0 Z"/><text class="noteText" x="16" y="28">分组只改变导航位置；</text><text class="noteText" x="16" y="51">不会移动文件、修改项目绑定</text><text class="noteText" x="16" y="74">或重写任务 cwd。</text><line x1="16" y1="94" x2="230" y2="94" stroke="#263553"/><text class="noteText" x="16" y="119">任务创建时记录执行环境，</text><text class="noteText" x="16" y="142">后续导航调整与之解耦。</text></g>
+          </svg>
+        </div>
+        <div class="legend"><span><i></i>导航对象</span><span><i></i>组织对象</span><span><i></i>环境对象</span><span><i></i>版本控制</span></div>
+      </div>
+    </section>
+
+    <section id="matrix">
+      <div class="section-head">
+        <div class="section-no">03</div>
+        <div><h2>对象属性与行为矩阵</h2><p class="section-copy">用于快速判断某项操作到底会改变导航、任务上下文，还是磁盘上的真实数据。</p></div>
+      </div>
+      <div class="matrix-wrap">
+        <table>
+          <thead><tr><th>对象</th><th>关键标识</th><th>关键属性</th><th>主要关系</th><th>改变它会影响什么</th></tr></thead>
+          <tbody>
+            <tr><td>SidebarSection</td><td><code>sectionId</code></td><td>名称、类型、顺序</td><td>包含 SectionEntry</td><td>只改变左侧栏组织方式</td></tr>
+            <tr><td>Project</td><td><code>projectId</code></td><td>标签、路径、主机、Git标记</td><td>指向项目根目录；关联多个任务</td><td>影响从项目新建任务时的默认环境</td></tr>
+            <tr><td>CodexTask</td><td><code>threadId</code></td><td>标题、状态、projectId、cwd、模型</td><td>属于项目；包含多个 Turn</td><td>决定本任务的上下文、命令位置和工作记录</td></tr>
+            <tr><td>ChatConversation</td><td><code>conversationId</code></td><td>标题、摘要、更新时间</td><td>包含消息；项目关系可选</td><td>主要影响对话上下文，通常不直接定义本地执行环境</td></tr>
+            <tr><td>Folder</td><td><code>absolutePath</code></td><td>是否存在、是否可写</td><td>被项目或Workspace引用；可包含Git仓库</td><td>这是磁盘真实内容，移动或删除会影响文件访问</td></tr>
+            <tr><td>Workspace</td><td><code>workspaceId</code></td><td>根路径、环境类型</td><td>供 CodexTask 执行；可基于Worktree</td><td>决定任务实际操作的隔离环境</td></tr>
+            <tr><td>GitRepository</td><td><code>rootPath</code></td><td>远程、分支、提交、脏状态</td><td>位于Folder中；派生Worktree</td><td>影响版本控制与提交历史</td></tr>
+            <tr><td>GitWorktree</td><td><code>worktreeId</code></td><td>路径、分支、基线、状态</td><td>属于GitRepository；可承载Workspace</td><td>提供独立检出目录，降低并行修改冲突</td></tr>
+            <tr><td>Turn / Message</td><td><code>turnId / messageId</code></td><td>角色、内容、状态、时间</td><td>组成任务历史；触发ToolCall</td><td>影响会话上下文和本轮执行</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section id="instance">
+      <div class="section-head">
+        <div class="section-no">04</div>
+        <div><h2>DeepSeek Harness 当前实例</h2><p class="section-copy">把抽象对象映射到当前本机配置，突出“导航归组”与“任务绑定”的差异。</p></div>
+      </div>
+      <div class="instance-layout">
+        <div class="diagram-shell">
+          <div class="diagram-title"><strong>Object Diagram · 当前对象实例</strong><span>实际路径与绑定</span></div>
+          <div class="diagram-scroll">
+            <svg class="uml" viewBox="0 0 1070 650" role="img" aria-label="DeepSeek Harness当前实例对象图">
+              <defs><marker id="i-arrow" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto"><path d="M0,0 L0,6 L9,3 z" fill="#7087b3"/></marker><style>.ib{fill:#111b31;stroke-width:2}.in{stroke:#61e7cb}.io{stroke:#8da2ff}.ie{stroke:#ffc96b}.ig{stroke:#c29bff}.it{fill:#edf3ff;font:700 15px 'Segoe UI','Microsoft YaHei',sans-serif}.ia{fill:#aab8d2;font:12px Consolas,monospace}.il{fill:none;stroke:#7087b3;stroke-width:1.7;marker-end:url(#i-arrow)}.ix{fill:#9cabc8;font:12px 'Segoe UI','Microsoft YaHei',sans-serif}.warn{fill:#211b13;stroke:#ffc96b;stroke-width:1.4;stroke-dasharray:5 4}.wt{fill:#ffe1a3;font:12px 'Segoe UI','Microsoft YaHei',sans-serif}</style></defs>
+              <g transform="translate(35 45)"><rect class="ib in" width="285" height="94" rx="11"/><text class="it" x="16" y="28">DeepSeek Harness : Section</text><text class="ia" x="16" y="54">type = CUSTOM</text><text class="ia" x="16" y="75">role = 仅导航归组</text></g>
+              <g transform="translate(390 35)"><rect class="ib io" width="330" height="125" rx="11"/><text class="it" x="16" y="28">DeepSeekHarness-Project : Project</text><text class="ia" x="16" y="55">path = D:\Projects\</text><text class="ia" x="16" y="73">       DeepSeekHarness-Project</text><text class="ia" x="16" y="98">isGitRepository = false</text><text class="ia" x="16" y="116">hostId = local</text></g>
+              <g transform="translate(785 45)"><rect class="ib ie" width="250" height="104" rx="11"/><text class="it" x="16" y="28">ProjectFolder : Folder</text><text class="ia" x="16" y="54">D:\Projects\</text><text class="ia" x="16" y="72">DeepSeekHarness-Project</text><text class="ia" x="16" y="94">exists = true</text></g>
+              <g transform="translate(35 250)"><rect class="ib io" width="315" height="132" rx="11"/><text class="it" x="16" y="28">旧任务 : CodexTask</text><text class="ia" x="16" y="55">title = DSH学习与本地部署</text><text class="ia" x="16" y="78">project = Projects</text><text class="ia" x="16" y="101">cwd = D:\Projects</text><text class="ia" x="16" y="122">section = DeepSeek Harness</text></g>
+              <g transform="translate(390 250)"><rect class="ib io" width="330" height="132" rx="11"/><text class="it" x="16" y="28">新任务 : CodexTask</text><text class="ia" x="16" y="55">title = 介绍项目</text><text class="ia" x="16" y="78">project = DeepSeekHarness-Project</text><text class="ia" x="16" y="101">cwd = D:\Projects\</text><text class="ia" x="16" y="119">      DeepSeekHarness-Project</text></g>
+              <g transform="translate(785 235)"><rect class="ib ig" width="250" height="100" rx="11"/><text class="it" x="16" y="28">personal fork : GitRepository</text><text class="ia" x="16" y="55">root = source\fork</text><text class="ia" x="16" y="78">remote = personal GitHub fork</text></g>
+              <g transform="translate(785 390)"><rect class="ib ig" width="250" height="100" rx="11"/><text class="it" x="16" y="28">legacy upstream : GitRepository</text><text class="ia" x="16" y="55">root = source\legacy-upstream</text><text class="ia" x="16" y="78">role = 历史上游副本</text></g>
+              <g transform="translate(35 480)"><path class="warn" d="M0 0 H685 V120 H0 Z"/><text class="wt" x="18" y="30">关键差异</text><text class="wt" x="18" y="57">旧任务虽然出现在 DeepSeek Harness 分组中，仍绑定 Projects，cwd 仍为 D:\Projects。</text><text class="wt" x="18" y="82">从 DeepSeekHarness-Project 新建的任务才会继承整理后的项目目录。</text><text class="wt" x="18" y="104">重启 Codex 或移动导航位置，都不会重写既有任务的 cwd。</text></g>
+              <path class="il" d="M320 92 L390 92"/><text class="ix" x="333" y="82">包含项目</text>
+              <path class="il" d="M720 96 L785 96"/><text class="ix" x="730" y="84">根目录</text>
+              <path class="il" d="M177 139 L177 250"/><text class="ix" x="188" y="202">导航包含</text>
+              <path class="il" d="M555 160 L555 250"/><text class="ix" x="566" y="211">正确绑定</text>
+              <path class="il" d="M910 149 L910 235"/><text class="ix" x="921" y="198">包含</text>
+              <path class="il" d="M935 149 L935 390"/><text class="ix" x="945" y="365">包含</text>
+            </svg>
+          </div>
+        </div>
+        <aside class="fact-panel">
+          <h3>实例事实</h3>
+          <div class="fact"><span>自定义分组</span><code>DeepSeek Harness</code></div>
+          <div class="fact"><span>项目目录</span><code>D:\Projects\DeepSeekHarness-Project</code></div>
+          <div class="fact"><span>个人 Fork</span><code>...\source\fork</code></div>
+          <div class="fact"><span>当前旧任务 CWD</span><code>D:\Projects</code></div>
+          <div class="fact"><span>新项目任务 CWD</span><code>D:\Projects\DeepSeekHarness-Project</code></div>
+          <div class="callout">项目根目录是综合资料目录，本身不是 Git 仓库；内部可以同时容纳个人 Fork、历史上游副本、PPT、报告和工具。</div>
+        </aside>
+      </div>
+    </section>
+
+    <section id="rules">
+      <div class="section-head">
+        <div class="section-no">05</div>
+        <div><h2>关键业务规则</h2><p class="section-copy">这些规则解释了最常见的导航与工作目录问题。</p></div>
+      </div>
+      <div class="rule-grid">
+        <article class="rule"><b>R1 · 分组与执行解耦</b><p>移动项目或任务到自定义分组，只更新导航引用和顺序，不修改项目路径、任务绑定或磁盘内容。</p></article>
+        <article class="rule"><b>R2 · 新任务继承项目环境</b><p>从项目入口创建任务时，项目路径和主机用于建立任务的默认 Workspace 与 CWD。</p></article>
+        <article class="rule"><b>R3 · 既有任务保留 CWD</b><p>任务创建后保留自身执行目录。重启应用、置顶、归档或改变分组不会自动重新绑定。</p></article>
+        <article class="rule"><b>R4 · 项目不等于 Git 仓库</b><p>项目可以是普通目录；Git 仓库既可以位于项目根目录，也可以是项目目录下的一个子目录。</p></article>
+        <article class="rule"><b>R5 · Worktree 用于隔离</b><p>Git 项目可派生独立 Worktree，为并行任务提供隔离的分支和文件修改空间。</p></article>
+        <article class="rule"><b>R6 · 任务大于普通对话</b><p>Codex 任务不仅包含消息，还承载工具调用、命令执行、文件变更、产物和运行状态。</p></article>
+      </div>
+    </section>
+
+    <section id="source">
+      <div class="section-head">
+        <div class="section-no">06</div>
+        <div><h2>可复用 PlantUML 源码</h2><p class="section-copy">以下源码可复制到 PlantUML 环境中继续扩展。HTML 中的主图采用内嵌 SVG，离线打开不依赖外部服务。</p></div>
+      </div>
+      <details>
+        <summary>展开 / 收起 PlantUML 核心模型</summary>
+        <pre>@startuml
+title Codex 核心数据对象关系模型
+
+class SidebarSection {
+  +sectionId: UUID
+  +name: String
+  +sectionType: SectionType
+  +displayOrder: Integer
+}
+
+class SectionEntry {
+  +targetType: TargetType
+  +targetId: String
+  +displayOrder: Integer
+}
+
+class Project {
+  +projectId: String
+  +label: String
+  +path: AbsolutePath
+  +hostId: String
+  +isGitRepository: Boolean
+}
+
+abstract class Thread {
+  +threadId: UUID
+  +title: String
+  +summary: String
+  +kind: ThreadKind
+  +status: ThreadStatus
+  +updatedAt: DateTime
+}
+
+class CodexTask {
+  +projectId: String [0..1]
+  +hostId: String
+  +cwd: AbsolutePath
+  +model: String
+  +reasoningEffort: String
+}
+
+class ChatConversation
+class Folder { +path: AbsolutePath }
+class Workspace { +environmentType: EnvironmentType }
+class GitRepository { +rootPath + remoteUrl + branch + headCommit + dirty }
+class GitWorktree { +path + branch + baseRevision + status }
+class Turn { +sequence + status + timestamps }
+class Message { +role + content + createdAt }
+class ToolCall { +toolName + arguments + status }
+class FileChange { +path + changeType + timestamp }
+class Artifact { +type + path + createdAt }
+
+SidebarSection "1" *-- "0..*" SectionEntry
+SectionEntry --> Project : 引用
+SectionEntry --> Thread : 引用
+Project --> Folder : 项目根目录
+Project "1" o-- "0..*" CodexTask : 关联任务
+Thread &lt;|-- CodexTask
+Thread &lt;|-- ChatConversation
+CodexTask --> Workspace : 使用
+CodexTask --> Folder : cwd指向
+Folder o-- GitRepository : 可以包含
+GitRepository o-- GitWorktree : 派生
+Workspace --> GitWorktree : 可基于
+Thread "1" *-- "1..*" Turn
+Turn "1" *-- "1..*" Message
+Turn o-- ToolCall
+Turn o-- FileChange
+Turn o-- Artifact
+
+note right of SidebarSection
+  分组只负责导航展示，
+  不改变项目绑定或 cwd。
+end note
+@enduml</pre>
+      </details>
+    </section>
+
+    <footer>
+      <span>Codex 核心数据对象与关系 · 概念 UML</span>
+      <span>说明：本模型基于当前可观察产品行为整理，不代表 OpenAI 内部完整数据结构。</span>
+    </footer>
+  </main>
+</body>
+</html>
