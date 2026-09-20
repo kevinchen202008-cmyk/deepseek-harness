@@ -1,0 +1,383 @@
+<title>客观性审查：DSH 版 vs Codex 版</title>
+<meta name="color-scheme" content="light dark">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:opsz,wght@8..60,400;8..60,600;8..60,700&family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#1c2430; --ink-soft:#48505d; --muted:#71798a;
+    --paper:#faf8f3; --surface:#ffffff; --line:#e5decf; --line-soft:#efe9dc;
+    --dsh:#2f6fed; --dsh-soft:#eaf1ff;
+    --codex:#7c4dff; --codex-soft:#f3efff;
+    --verify:#0f766e; --verify-soft:#e6f5f2;
+    --flag:#b45309; --flag-soft:#fdf1e2;
+    --shadow:0 10px 32px rgba(28,36,48,.07);
+    --serif:"Source Serif 4",Georgia,"Songti SC",serif;
+    --sans:"IBM Plex Sans","Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;
+    --mono:"IBM Plex Mono",ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+  }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){
+      --ink:#edf0f5; --ink-soft:#c3cbd8; --muted:#8b96a8;
+      --paper:#11141a; --surface:#171b23; --line:#2a3040; --line-soft:#232936;
+      --dsh:#7ba1ff; --dsh-soft:rgba(123,161,255,.13);
+      --codex:#b79bff; --codex-soft:rgba(183,155,255,.13);
+      --verify:#4fd1b8; --verify-soft:rgba(79,209,184,.13);
+      --flag:#e2a862; --flag-soft:rgba(226,168,98,.13);
+      --shadow:0 10px 32px rgba(0,0,0,.35);
+    }
+  }
+  :root[data-theme="dark"]{
+    --ink:#edf0f5; --ink-soft:#c3cbd8; --muted:#8b96a8;
+    --paper:#11141a; --surface:#171b23; --line:#2a3040; --line-soft:#232936;
+    --dsh:#7ba1ff; --dsh-soft:rgba(123,161,255,.13);
+    --codex:#b79bff; --codex-soft:rgba(183,155,255,.13);
+    --verify:#4fd1b8; --verify-soft:rgba(79,209,184,.13);
+    --flag:#e2a862; --flag-soft:rgba(226,168,98,.13);
+    --shadow:0 10px 32px rgba(0,0,0,.35);
+  }
+  *{box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{
+    margin:0; background:var(--paper); color:var(--ink);
+    font-family:var(--sans); font-size:15.5px; line-height:1.72;
+    padding-bottom:calc(64px + env(safe-area-inset-bottom,0px));
+  }
+  .page{width:min(880px, calc(100% - 32px)); margin:0 auto;}
+  a{color:var(--dsh)}
+  code{font-family:var(--mono); font-size:12.6px; background:var(--line-soft); border:1px solid var(--line); border-radius:5px; padding:1px 6px}
+
+  header.hero{
+    padding:52px 0 30px; border-bottom:1px solid var(--line);
+  }
+  .eyebrow{
+    margin:0 0 12px; font-family:var(--mono); font-size:12px; font-weight:500;
+    letter-spacing:.12em; text-transform:uppercase; color:var(--muted);
+  }
+  h1{
+    font-family:var(--serif); font-weight:700; font-size:clamp(30px,4.6vw,44px);
+    line-height:1.18; margin:0 0 18px; letter-spacing:-.01em; text-wrap:balance;
+  }
+  h1 .dsh{color:var(--dsh)} h1 .codex{color:var(--codex)}
+  .lead{max-width:62ch; font-size:17px; color:var(--ink-soft); margin:0 0 22px}
+  .meta{display:flex; flex-wrap:wrap; gap:8px}
+  .chip{
+    font-family:var(--mono); font-size:12px; color:var(--muted); background:var(--surface);
+    border:1px solid var(--line); border-radius:999px; padding:4px 12px;
+  }
+
+  nav.toc{
+    display:flex; flex-wrap:wrap; gap:7px; padding:16px 0 28px; border-bottom:1px solid var(--line);
+    margin-bottom:36px;
+  }
+  nav.toc a{
+    font-size:13px; color:var(--muted); text-decoration:none; background:var(--surface);
+    border:1px solid var(--line); border-radius:8px; padding:5px 10px;
+  }
+  nav.toc a:hover{color:var(--ink); border-color:var(--dsh)}
+
+  section{margin:0 0 52px}
+  h2{
+    font-family:var(--serif); font-weight:600; font-size:25px; margin:0 0 8px; letter-spacing:-.01em;
+  }
+  h2 .idx{font-family:var(--mono); font-weight:400; color:var(--muted); font-size:14px; margin-right:10px}
+  .section-sub{color:var(--muted); font-size:14px; margin:0 0 22px}
+  h3{font-family:var(--sans); font-weight:600; font-size:16.5px; margin:0 0 8px}
+  p{margin:9px 0}
+  ul{margin:8px 0; padding-left:20px} li{margin:5px 0}
+
+  .verdict{display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-bottom:18px}
+  .vcard{
+    padding:22px; border:1px solid var(--line); border-radius:14px; background:var(--surface);
+  }
+  .vcard.dsh{border-top:4px solid var(--dsh)}
+  .vcard.codex{border-top:4px solid var(--codex)}
+  .vcard .tag{
+    display:inline-block; font-family:var(--mono); font-size:11px; letter-spacing:.06em;
+    padding:2px 9px; border-radius:999px; margin-bottom:10px; font-weight:500;
+  }
+  .vcard.dsh .tag{background:var(--dsh-soft); color:var(--dsh)}
+  .vcard.codex .tag{background:var(--codex-soft); color:var(--codex)}
+  .vcard strong{display:block; font-family:var(--serif); font-size:20px; margin-bottom:6px}
+  .vcard p{font-size:13.8px; color:var(--ink-soft); margin:0}
+
+  .banner{
+    padding:18px 22px; border-radius:0 12px 12px 0; border-left:4px solid var(--verify);
+    background:var(--verify-soft); font-size:15.5px;
+  }
+  .banner strong{color:var(--verify)}
+
+  .table-wrap{overflow-x:auto; border:1px solid var(--line); border-radius:14px; background:var(--surface)}
+  table{width:100%; border-collapse:collapse; font-size:13.6px; min-width:640px}
+  th,td{padding:12px 14px; text-align:left; vertical-align:top; border-bottom:1px solid var(--line)}
+  thead th{background:var(--line-soft); color:var(--muted); font-size:12.5px; font-weight:600}
+  tbody tr:last-child td{border-bottom:none}
+  td.dim{color:var(--ink-soft)}
+  .win{
+    display:inline-block; font-family:var(--mono); font-size:11px; font-weight:600;
+    padding:2px 8px; border-radius:6px; white-space:nowrap;
+  }
+  .win.dsh{background:var(--dsh-soft); color:var(--dsh)}
+  .win.codex{background:var(--codex-soft); color:var(--codex)}
+  .win.tie{background:var(--line-soft); color:var(--muted)}
+
+  .criterion{
+    border:1px solid var(--line); border-radius:14px; background:var(--surface);
+    padding:22px 24px; margin-bottom:16px;
+  }
+  .criterion .num{
+    font-family:var(--mono); font-size:12px; color:var(--muted); letter-spacing:.05em;
+  }
+  .quote-grid{display:grid; grid-template-columns:1fr 1fr; gap:14px; margin-top:14px}
+  .quote{
+    padding:14px 16px; border-radius:10px; font-size:13.4px; border:1px solid var(--line);
+  }
+  .quote.dsh{background:var(--dsh-soft); border-color:transparent}
+  .quote.codex{background:var(--codex-soft); border-color:transparent}
+  .quote .who{
+    display:block; font-family:var(--mono); font-size:11px; font-weight:600;
+    text-transform:uppercase; letter-spacing:.05em; margin-bottom:6px;
+  }
+  .quote.dsh .who{color:var(--dsh)} .quote.codex .who{color:var(--codex)}
+  .verdict-line{
+    margin-top:14px; padding-top:12px; border-top:1px dashed var(--line);
+    font-size:13.6px; color:var(--ink-soft);
+  }
+  .verdict-line b{color:var(--verify)}
+
+  .badge{
+    display:inline-block; font-family:var(--mono); font-size:10.5px; font-weight:600;
+    padding:1px 7px; border-radius:5px; margin-right:4px; vertical-align:1px;
+  }
+  .badge.strong{background:var(--verify-soft); color:var(--verify)}
+  .badge.weak{background:var(--flag-soft); color:var(--flag)}
+
+  .limits{
+    border:1px solid var(--line); border-left:4px solid var(--flag); border-radius:0 14px 14px 0;
+    background:var(--surface); padding:20px 22px;
+  }
+  .limits li{color:var(--ink-soft); font-size:13.8px}
+
+  .sources-grid{display:grid; grid-template-columns:1fr 1fr; gap:16px}
+  .source-card{
+    border:1px solid var(--line); border-radius:14px; background:var(--surface); padding:20px;
+  }
+  .source-card h3{margin-bottom:4px}
+  .source-card .path{
+    display:block; font-family:var(--mono); font-size:11.5px; color:var(--muted);
+    background:var(--line-soft); border-radius:7px; padding:8px 10px; margin:10px 0; word-break:break-all;
+  }
+  .source-card a.open{
+    display:inline-block; margin-top:6px; font-size:13.6px; font-weight:600;
+    text-decoration:none; border-bottom:2px solid currentColor; padding-bottom:1px;
+  }
+  .source-card.dsh a.open{color:var(--dsh)}
+  .source-card.codex a.open{color:var(--codex)}
+
+  footer{
+    padding-top:20px; border-top:1px solid var(--line); color:var(--muted); font-size:12.4px;
+  }
+
+  @media (max-width:720px){
+    .verdict, .quote-grid, .sources-grid{grid-template-columns:1fr}
+    header.hero{padding-top:32px}
+  }
+</style>
+
+<div class="page">
+
+  <header class="hero">
+    <p class="eyebrow">Meta-Analysis · 元分析</p>
+    <h1>谁的对比更客观：<span class="dsh">DSH 版</span> 还是 <span class="codex">Codex 版</span></h1>
+    <p class="lead">对同一个问题——DeepSeek Harness 与 OpenAI Codex 孰优孰劣——两份自评式对比报告给出了不同的答案。本页不重复原文内容，只审查两份报告各自"怎么论证"，并给出客观性判断。</p>
+    <div class="meta">
+      <span class="chip">审查日期 2026-09-20</span>
+      <span class="chip">对象 A · DSH 自评版（dsh-vs-codex.html）</span>
+      <span class="chip">对象 B · Codex 自评版（DSH-vs-Codex-对比分析-20260918.html）</span>
+      <span class="chip">方法：文本结构 / 证据处理 / 呈现框架审查</span>
+    </div>
+  </header>
+
+  <nav class="toc" aria-label="目录">
+    <a href="#verdict">结论</a>
+    <a href="#criteria">六项客观性指标</a>
+    <a href="#c1">证据分级</a>
+    <a href="#c2">自我纠错</a>
+    <a href="#c3">量化评分</a>
+    <a href="#c4">呈现框架</a>
+    <a href="#c5">批评对称性</a>
+    <a href="#c6">结论分布</a>
+    <a href="#limits">本审查的局限</a>
+    <a href="#sources">原始报告</a>
+  </nav>
+
+  <section id="verdict">
+    <h2><span class="idx">01</span>结论</h2>
+    <div class="verdict">
+      <article class="vcard dsh">
+        <span class="tag">对象 A</span>
+        <strong>DSH 版更客观</strong>
+        <p>逐条标注证据等级、公开保留此前的错误判断、对己方缺陷给出具体可复核依据（源码路径、issue 编号）。方法论纪律明显更严谨。</p>
+      </article>
+      <article class="vcard codex">
+        <span class="tag">对象 B</span>
+        <strong>Codex 版更接近成品汇报</strong>
+        <p>视觉打磨度更高，但缺少逐条证据分级与修正记录，引入了无方法论支撑的量化评分，批评力度和可验证性均偏弱。</p>
+      </article>
+    </div>
+    <p class="banner"><strong>核心判断：</strong>DSH 版在证据分级、自我纠错、批评对称性三方面都提供了可复核的具体依据，Codex 版更像一份经过设计包装的产品汇报——这不代表它的每条结论都错，但它提供的"可被验证性"明显更少。</p>
+  </section>
+
+  <section id="criteria">
+    <h2><span class="idx">02</span>六项客观性指标一览</h2>
+    <p class="section-sub">评级为定性判断（有/无、具体/笼统），不换算成分数——量化评分本身正是本页要批评的问题之一，因此这里刻意不用它。</p>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th style="width:24%">指标</th><th style="width:34%">DSH 版</th><th style="width:34%">Codex 版</th><th style="width:8%">更优</th></tr></thead>
+        <tbody>
+          <tr><td>逐条证据分级</td><td class="dim">三级徽章（本机实测/官方文档/第三方）+ 未核实事项专节</td><td class="dim">仅末尾一句笼统免责声明</td><td><span class="win dsh">A</span></td></tr>
+          <tr><td>自我纠错记录</td><td class="dim">专设"三处更正"，保留旧结论对照</td><td class="dim">无修正记录，一次成型</td><td><span class="win dsh">A</span></td></tr>
+          <tr><td>量化评分方法论</td><td class="dim">全部定性 + 优势方徽章，无编造分值</td><td class="dim">引入 0–100 能力评分，无权重/算法说明</td><td><span class="win dsh">A</span></td></tr>
+          <tr><td>呈现框架中立性</td><td class="dim">双方优劣势清单视觉权重对称</td><td class="dim">安全一节用 class="risks"（DSH）/"pros"（Codex）预设褒贬</td><td><span class="win dsh">A</span></td></tr>
+          <tr><td>批评的对称与具体</td><td class="dim">对双方缺陷均给出源码路径 / issue 编号级依据</td><td class="dim">双方缺陷描述均为概括性文字，无可复核细节</td><td><span class="win dsh">A</span></td></tr>
+          <tr><td>结论胜负分布</td><td class="dim">约 20 行对比中两方胜负大致相当</td><td class="dim">13 行矩阵中 7 行明确倾向 Codex，仅 3 行倾向 DSH</td><td><span class="win dsh">A</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section id="deep-dive">
+    <h2><span class="idx">03</span>逐项拆解</h2>
+
+    <article class="criterion" id="c1">
+      <span class="num">01 / 证据分级机制</span>
+      <h3>谁标注了"这条结论我有多确定"</h3>
+      <div class="quote-grid">
+        <div class="quote dsh">
+          <span class="who">DSH 版</span>
+          全文对关键论断标注 <span class="badge strong">本机实测</span><span class="badge strong">官方文档</span><span class="badge weak">第三方</span> 三级证据徽章，并单设"未能核实的事项"一节，列出具体未查证的数字（如上下文窗口传闻）。
+        </div>
+        <div class="quote codex">
+          <span class="who">Codex 版</span>
+          没有逐条证据标注机制，仅在末尾附一句通用免责声明（"Codex 未公开部分不作推断"），读者无法分辨哪些结论有一手验证、哪些是转述。
+        </div>
+      </div>
+      <p class="verdict-line">可复核性上 <b>DSH 版明显更透明</b>：读者能沿着徽章找到证据来源，Codex 版则需要读者自行信任。</p>
+    </article>
+
+    <article class="criterion" id="c2">
+      <span class="num">02 / 自我纠错记录</span>
+      <h3>是否公开承认过判断错误</h3>
+      <div class="quote-grid">
+        <div class="quote dsh">
+          <span class="who">DSH 版</span>
+          专设"对初版判断的三处更正"一节，明确写出此前误判——例如曾错误认为"Codex 无通用多代理编排原语"，复核后推翻，并保留旧结论以便追溯证据变化。
+        </div>
+        <div class="quote codex">
+          <span class="who">Codex 版</span>
+          没有对应机制，报告以一次成型的结论呈现，读者无从判断其中是否也存在类似需要修正之处。
+        </div>
+      </div>
+      <p class="verdict-line">公开的自我纠错记录是<b>少见的诚实信号</b>，会主动暴露自身错误的报告，通常比不会犯错假象的报告更可信。</p>
+    </article>
+
+    <article class="criterion" id="c3">
+      <span class="num">03 / 量化评分的方法论</span>
+      <h3>数字是测出来的，还是"看起来像测出来的"</h3>
+      <div class="quote-grid">
+        <div class="quote dsh">
+          <span class="who">DSH 版</span>
+          全部使用定性描述 + "DSH 赢 / Codex 赢 / 平手"徽章，不制造具体数值。
+        </div>
+        <div class="quote codex">
+          <span class="who">Codex 版</span>
+          新增"能力侧写"评分板，给出如"底层可定制性 95""开箱体验 55"等两位数分值，虽注明"不代表模型质量基准"，但全文找不到评分权重或计算方法。
+        </div>
+      </div>
+      <p class="verdict-line">进度条 + 具体数字天然带来"精确测量"的错觉，而背后其实是主观定性判断的包装。这是一种常见的<b>说服性呈现手法</b>，而非客观分析。</p>
+    </article>
+
+    <article class="criterion" id="c4">
+      <span class="num">04 / 呈现框架的中立性</span>
+      <h3>版式和命名有没有替读者预先下结论</h3>
+      <div class="quote-grid">
+        <div class="quote dsh">
+          <span class="who">DSH 版</span>
+          双方优劣势清单使用完全对称的视觉样式（<code>.box.dsh</code> / <code>.box.cdx</code>），配色权重一致。
+        </div>
+        <div class="quote codex">
+          <span class="who">Codex 版</span>
+          "安全治理"一节把 DSH 一栏的样式类命名为 <code>risks</code>（暖色警示条），Codex 一栏命名为 <code>pros</code>（强调优点），即便两栏文字内容本身较为接近。
+        </div>
+      </div>
+      <p class="verdict-line">CSS 类名本身不会被读者看到，但它塑造的视觉基调会——这是一种<b>结构性框架偏向</b>，比文字措辞更隐蔽。</p>
+    </article>
+
+    <article class="criterion" id="c5">
+      <span class="num">05 / 批评的对称性与具体性</span>
+      <h3>说到对方（和自己）的缺点时，敢不敢给出可查证的细节</h3>
+      <div class="quote-grid">
+        <div class="quote dsh">
+          <span class="who">DSH 版</span>
+          对 Codex 的缺陷给出源码路径（<code>core/src/session/mod.rs</code>）与四个具体 GitHub issue 编号；对自身也列出 5 条具体短板（审批仅两档、无保护路径等）。
+        </div>
+        <div class="quote codex">
+          <span class="who">Codex 版</span>
+          双方缺陷均以概括性语言带过，没有引用具体源码、issue 或文档出处；对 Codex 自身"摩擦"仅用一句话概括。
+        </div>
+      </div>
+      <p class="verdict-line">可验证的具体批评（谁都能去查那个 issue 号）远比"较为复杂""存在依赖"这类泛泛而谈<b>更有说服力，也更诚实</b>。</p>
+    </article>
+
+    <article class="criterion" id="c6">
+      <span class="num">06 / 结论胜负分布</span>
+      <h3>谁赢得多，本身也是一种信号</h3>
+      <div class="quote-grid">
+        <div class="quote dsh">
+          <span class="who">DSH 版</span>
+          用户体验表 + 架构表共约 20 行判断中，Codex 胜出与 DSH 胜出的数量大致相当，且主动收窄自身优势（"编排差距比初版描述的小"）。
+        </div>
+        <div class="quote codex">
+          <span class="who">Codex 版</span>
+          13 行对比矩阵中，7 行判断栏明确写"Codex 更强/更领先/更成熟"，只有 3 行倾向 DSH，分布明显偏向自身所代表的一方。
+        </div>
+      </div>
+      <p class="verdict-line">单看胜负分布不能证明谁"对"，但一份自评报告如果结论几乎全部倒向自己，<b>本身就是需要警惕的信号</b>。</p>
+    </article>
+  </section>
+
+  <section id="limits">
+    <h2><span class="idx">04</span>本审查的局限</h2>
+    <div class="limits">
+      <ul>
+        <li>本页只审查了两份 HTML 报告的文本、结构与呈现方式，<b>没有独立复核</b>其引用的每一条底层事实（例如未逐一验证 DSH 版列出的 GitHub issue 编号是否属实）。</li>
+        <li>"对象 A 由 DSH 生成 / 对象 B 由 Codex 生成"这一归属，来自用户在提问时的标注和文件所在目录路径，本页<b>未独立确认</b>具体生成流程。</li>
+        <li>本页的判断标准（证据分级、自我纠错、框架中立性等）是审查者自行选定的维度，选择维度本身也可能带有倾向性——建议将本页视为一种审查意见，而非最终裁决。</li>
+      </ul>
+    </div>
+  </section>
+
+  <section id="sources">
+    <h2><span class="idx">05</span>原始报告</h2>
+    <p class="section-sub">以下两份文件即本次审查的全部审查对象，建议对照原文核实本页的每一条引用。</p>
+    <div class="sources-grid">
+      <article class="source-card dsh">
+        <h3 style="color:var(--dsh)">对象 A · DSH 自评版</h3>
+        <p style="font-size:13.4px;color:var(--ink-soft);margin:0">DSH vs Codex — 对比分析报告（DSH 0.1.5-rc.2 基线）</p>
+        <span class="path">file://wsl.localhost/Ubuntu/home/kevin/SweBench_auto_verify/docs/dsh-vs-codex.html</span>
+        <a class="open" href="reports/dsh-report.html" target="_blank" rel="noopener">打开原始报告 →</a>
+      </article>
+      <article class="source-card codex">
+        <h3 style="color:var(--codex)">对象 B · Codex 自评版</h3>
+        <p style="font-size:13.4px;color:var(--ink-soft);margin:0">DeepSeek Harness 与 OpenAI Codex 多维对比分析（DSH 0.1.6-alpha.1 基线）</p>
+        <span class="path">file:///D:/Projects/DeepSeekHarness-Project/deliverables/comparison/DSH-vs-Codex-对比分析-20260918.html</span>
+        <a class="open" href="reports/codex-report.html" target="_blank" rel="noopener">打开原始报告 →</a>
+      </article>
+    </div>
+  </section>
+
+  <footer>
+    本页为对两份第三方 / 自评生成报告的元分析，观点仅代表审查角度，不构成对 DeepSeek Harness 或 OpenAI Codex 产品本身的评测结论。
+  </footer>
+
+</div>

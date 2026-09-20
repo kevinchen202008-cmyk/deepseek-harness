@@ -1,0 +1,460 @@
+<!DOCTYPE html>
+<!-- saved from url=(0082)file://wsl.localhost/Ubuntu/home/kevin/SweBench_auto_verify/docs/dsh-vs-codex.html -->
+<html lang="zh-CN"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>DSH vs Codex — 对比分析报告</title>
+<style>
+  :root{
+    --bg:#0f1115; --panel:#161a21; --panel-2:#1c2129; --line:#2b3240;
+    --fg:#e6e9ef; --fg-dim:#a8b1c2; --fg-mute:#7b8598;
+    --dsh:#4f8cff; --dsh-bg:rgba(79,140,255,.12);
+    --cdx:#22c58b; --cdx-bg:rgba(34,197,139,.12);
+    --warn:#ffb020; --bad:#ff6b6b; --ok:#3ddc97;
+    --radius:12px; --mono:ui-monospace,SFMono-Regular,"SF Mono",Menlo,Consolas,"Liberation Mono",monospace;
+  }
+  @media (prefers-color-scheme: light){
+    :root{
+      --bg:#f6f7f9; --panel:#ffffff; --panel-2:#f0f2f5; --line:#dfe3ea;
+      --fg:#1a1d23; --fg-dim:#4a5261; --fg-mute:#6d7686;
+      --dsh:#2563eb; --dsh-bg:rgba(37,99,235,.08);
+      --cdx:#0f9d6b; --cdx-bg:rgba(15,157,107,.08);
+      --warn:#b26b00; --bad:#c62828; --ok:#0f9d6b;
+    }
+  }
+  *{box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{
+    margin:0; background:var(--bg); color:var(--fg);
+    font:15px/1.75 -apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;
+  }
+  .wrap{max-width:1180px; margin:0 auto; padding:40px 24px 80px}
+  header.hero{
+    background:linear-gradient(135deg,var(--panel) 0%,var(--panel-2) 100%);
+    border:1px solid var(--line); border-radius:18px; padding:30px 32px; margin-bottom:28px;
+  }
+  h1{margin:0 0 8px; font-size:30px; letter-spacing:.3px}
+  h1 .vs{color:var(--fg-mute); font-weight:400; margin:0 10px}
+  h1 .a{color:var(--dsh)} h1 .b{color:var(--cdx)}
+  .sub{color:var(--fg-dim); font-size:14px}
+  .meta{margin-top:16px; display:flex; flex-wrap:wrap; gap:8px}
+  .chip{
+    font-size:12.5px; color:var(--fg-dim); background:var(--panel-2);
+    border:1px solid var(--line); border-radius:999px; padding:3px 11px;
+  }
+  h2{
+    font-size:21px; margin:44px 0 14px; padding-bottom:9px; border-bottom:1px solid var(--line);
+  }
+  h2 .num{color:var(--fg-mute); font-weight:400; margin-right:8px; font-family:var(--mono); font-size:17px}
+  h3{font-size:16px; margin:26px 0 10px}
+  p{margin:10px 0}
+  a{color:var(--dsh); text-decoration:none; border-bottom:1px dotted currentColor}
+  a:hover{opacity:.8}
+  code{font-family:var(--mono); font-size:12.8px; background:var(--panel-2); border:1px solid var(--line); border-radius:5px; padding:1px 5px}
+  .legend{display:flex; flex-wrap:wrap; gap:14px; margin:12px 0 0; font-size:13px; color:var(--fg-dim)}
+  .b{display:inline-block; font-size:11.5px; font-weight:600; padding:1px 7px; border-radius:6px; white-space:nowrap; vertical-align:1px}
+  .b.local{background:rgba(61,220,151,.14); color:var(--ok); border:1px solid rgba(61,220,151,.3)}
+  .b.doc{background:rgba(79,140,255,.14); color:var(--dsh); border:1px solid rgba(79,140,255,.3)}
+  .b.third{background:rgba(255,176,32,.14); color:var(--warn); border:1px solid rgba(255,176,32,.32)}
+  .b.win-dsh{background:var(--dsh-bg); color:var(--dsh); border:1px solid rgba(79,140,255,.3)}
+  .b.win-cdx{background:var(--cdx-bg); color:var(--cdx); border:1px solid rgba(34,197,139,.3)}
+  .b.win-tie{background:var(--panel-2); color:var(--fg-mute); border:1px solid var(--line)}
+  .cards{display:grid; grid-template-columns:repeat(auto-fit,minmax(260px,1fr)); gap:14px; margin-top:16px}
+  .card{background:var(--panel); border:1px solid var(--line); border-radius:var(--radius); padding:16px 18px}
+  .card h4{margin:0 0 6px; font-size:14.5px}
+  .card p{margin:0; font-size:13.5px; color:var(--fg-dim)}
+  .card.dsh{border-left:3px solid var(--dsh)}
+  .card.cdx{border-left:3px solid var(--cdx)}
+  .tablewrap{overflow-x:auto; border:1px solid var(--line); border-radius:var(--radius); margin:14px 0}
+  table{border-collapse:collapse; width:100%; font-size:13.8px; min-width:760px; background:var(--panel)}
+  th,td{padding:11px 13px; text-align:left; vertical-align:top; border-bottom:1px solid var(--line)}
+  thead th{background:var(--panel-2); font-size:13px; color:var(--fg-dim); font-weight:600; position:sticky; top:0}
+  tbody tr:last-child td{border-bottom:none}
+  tbody tr:hover{background:var(--panel-2)}
+  td.dim{color:var(--fg-dim)}
+  .col-dsh{background:linear-gradient(180deg,var(--dsh-bg),transparent)}
+  .col-cdx{background:linear-gradient(180deg,var(--cdx-bg),transparent)}
+  .cols{display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-top:14px}
+  @media (max-width:820px){.cols{grid-template-columns:1fr}}
+  .box{background:var(--panel); border:1px solid var(--line); border-radius:var(--radius); padding:18px 20px}
+  .box.dsh{border-top:3px solid var(--dsh)} .box.cdx{border-top:3px solid var(--cdx)}
+  .box h4{margin:0 0 10px; font-size:15px}
+  ul{margin:8px 0; padding-left:22px} li{margin:5px 0}
+  .ok::marker{color:var(--ok)} .no::marker{color:var(--bad)}
+  .diagram{background:var(--panel); border:1px solid var(--line); border-radius:var(--radius); padding:22px; margin-top:14px; overflow-x:auto}
+  .diagram pre{margin:0; font-family:var(--mono); font-size:12.2px; line-height:1.6; color:var(--fg-dim)}
+  .note{
+    background:var(--panel-2); border:1px solid var(--line); border-left:3px solid var(--warn);
+    border-radius:8px; padding:12px 16px; font-size:13.5px; color:var(--fg-dim); margin:14px 0;
+  }
+  .note.corr{border-left-color:var(--bad)}
+  .note.info{border-left-color:var(--dsh)}
+  footer{margin-top:52px; padding-top:18px; border-top:1px solid var(--line); color:var(--fg-mute); font-size:12.8px}
+  .toc{display:flex; flex-wrap:wrap; gap:8px; margin-top:18px}
+  .toc a{font-size:13px; color:var(--fg-dim); background:var(--panel-2); border:1px solid var(--line); border-radius:999px; padding:3px 12px; text-decoration:none}
+  .toc a:hover{color:var(--fg)}
+  @media print{
+    :root{--bg:#fff;--panel:#fff;--panel-2:#f7f8fa;--fg:#000;--fg-dim:#333;--fg-mute:#666;--line:#ccc}
+    body{font-size:11pt} .wrap{padding:0; max-width:none}
+    h2{page-break-after:avoid} .tablewrap,.box,.card{page-break-inside:avoid}
+    thead th{position:static}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header class="hero">
+  <h1><span class="a">DSH</span><span class="vs">vs</span><span class="b">Codex</span></h1>
+  <div class="sub">DeepSeek Harness 与 OpenAI Codex 的多维对比：用户使用体验 · 实现架构 · 优劣势 · 选型建议</div>
+  <div class="meta">
+    <span class="chip">报告日期 2026-09-18</span>
+    <span class="chip">DSH <code>0.1.5-rc.2</code> · MIT</span>
+    <span class="chip">Codex <code>0.121.0</code> · Apache-2.0（CLI）</span>
+    <span class="chip">证据：本机实测 + 官方文档 + 标注的第三方</span>
+  </div>
+  <div class="toc">
+    <a href="file://wsl.localhost/Ubuntu/home/kevin/SweBench_auto_verify/docs/dsh-vs-codex.html#tldr">结论摘要</a>
+    <a href="file://wsl.localhost/Ubuntu/home/kevin/SweBench_auto_verify/docs/dsh-vs-codex.html#corrections">对初版判断的更正</a>
+    <a href="file://wsl.localhost/Ubuntu/home/kevin/SweBench_auto_verify/docs/dsh-vs-codex.html#ux">用户体验对比</a>
+    <a href="file://wsl.localhost/Ubuntu/home/kevin/SweBench_auto_verify/docs/dsh-vs-codex.html#arch">架构对比</a>
+    <a href="file://wsl.localhost/Ubuntu/home/kevin/SweBench_auto_verify/docs/dsh-vs-codex.html#diagram">架构示意</a>
+    <a href="file://wsl.localhost/Ubuntu/home/kevin/SweBench_auto_verify/docs/dsh-vs-codex.html#pros">优劣势</a>
+    <a href="file://wsl.localhost/Ubuntu/home/kevin/SweBench_auto_verify/docs/dsh-vs-codex.html#choose">选型矩阵</a>
+    <a href="file://wsl.localhost/Ubuntu/home/kevin/SweBench_auto_verify/docs/dsh-vs-codex.html#risks">风险与缺陷</a>
+    <a href="file://wsl.localhost/Ubuntu/home/kevin/SweBench_auto_verify/docs/dsh-vs-codex.html#unverified">未核实项</a>
+    <a href="file://wsl.localhost/Ubuntu/home/kevin/SweBench_auto_verify/docs/dsh-vs-codex.html#refs">来源</a>
+  </div>
+</header>
+
+<div class="legend">
+  <span><span class="b local">本机实测</span> 在本机运行命令 / 读取源码包得到的一手事实</span>
+  <span><span class="b doc">官方文档</span> 官方仓库与文档站</span>
+  <span><span class="b third">第三方</span> 独立报道 / 议题，未独立复核</span>
+</div>
+
+<h2 id="tldr"><span class="num">01</span>结论摘要</h2>
+<div class="cards">
+  <div class="card dsh">
+    <h4>不是同一层的东西</h4>
+    <p>Codex 是<b>产品化编码代理</b>（CLI + IDE + 云 + 移动）；DSH 是<b>可编程 agent 宿主/编排内核</b>（多客户端、多模型、插件可改宿主组合）。</p>
+  </div>
+  <div class="card cdx">
+    <h4>Codex 的护城河在工程深度</h4>
+    <p>三平台原生沙箱 + <b>保护区路径</b> + 网络默认关闭与白名单代理 + granular 审批 + <b>auto_review 自动审批者</b> + 成熟的 CI 协议（<code>exec --json</code> / <code>--output-schema</code> / app-server）。</p>
+  </div>
+  <div class="card dsh">
+    <h4>DSH 的护城河在开放边界</h4>
+    <p>全栈 MIT，连<b>组合层</b>（bundle 栈 + patch 层）都开放；模型/客户端可换；沙箱 <b>fail-closed</b>；隐私默认更保守（遥测反馈门控）。</p>
+  </div>
+  <div class="card cdx">
+    <h4>Codex 已不是"只有 CLI"</h4>
+    <p><code>app-server</code>（JSON-RPC 2.0，thread/turn/item）是正式嵌入协议，TUI 可用 <code>--remote ws://</code> 远程接管；子代理默认开启。</p>
+  </div>
+  <div class="card dsh">
+    <h4>DSH 的编排形状更丰富</h4>
+    <p><code>subagent</code> / <code>workflow</code>（JS 扇出 + 阶段 + JSON Schema）/ <code>ralph</code>（fresh-agent 轮次）/ <code>goal</code>（跨轮目标）。</p>
+  </div>
+  <div class="card dsh">
+    <h4>组合比替代更现实</h4>
+    <p>DSH 能把 Codex 当子代理跑（<code>packages/subagent/subagent-codex</code>），也有兼容其 hook 协议的 <code>hooks-codex</code>。</p>
+  </div>
+</div>
+
+<h2 id="corrections"><span class="num">02</span>对初版判断的三处更正</h2>
+<div class="note corr">
+  初版对比基于本机命令表与既有印象，本轮以官方文档复核后，以下三条判断被推翻或修正。<b>保留在此以便追溯证据变化。</b>
+</div>
+<div class="tablewrap">
+<table>
+  <thead><tr><th style="width:26%">初版说法</th><th style="width:44%">复核后的事实</th><th style="width:30%">影响</th></tr></thead>
+  <tbody>
+    <tr>
+      <td>"Codex 无通用多代理编排原语"</td>
+      <td><b>错误。</b>子代理默认开启（<code>agents.enabled</code>），内建 <code>default</code>/<code>worker</code>/<code>explorer</code>，有 <code>agents.max_concurrent_threads_per_session</code>、<code>/agent</code> 切线程、<b>Ultra 模式主动委派</b>、自定义 agent TOML；另有云并行任务与 git worktree。（<span class="b doc">官方文档</span>）</td>
+      <td>编排差距比初版描述的<b>小</b>。DSH 仍胜在编排<b>形状</b>（workflow/ralph/goal），而非"有没有子代理"。</td>
+    </tr>
+    <tr>
+      <td>"靠 <code>codex mcp-server</code> 反向暴露给其它 agent"</td>
+      <td><b>已过时。</b><code>app-server</code>（双向 JSON-RPC 2.0，thread/turn/item，stdio/WebSocket/Unix socket）成为正式嵌入协议，<code>mcp-server</code> 已被移除。本机 0.121.0 仍列该子命令，属版本差异。（<span class="b local">本机</span> <span class="b doc">官方文档</span>）</td>
+      <td>Codex 的<b>可嵌入性高于</b>初版评价。</td>
+    </tr>
+    <tr>
+      <td>"Codex 是应用、DSH 是平台"</td>
+      <td><b>需修正。</b>Codex 现在也暴露内核协议（<code>codex app-server --listen ws://…</code> + <code>codex --remote ws://…</code>）。真正的差异是<b>开放边界的宽度</b>，不是"有没有内核"。</td>
+      <td>定位表述改为：<b>同为"内核 + 多客户端"，开放面与编排层厚度不同。</b></td>
+    </tr>
+  </tbody>
+</table>
+</div>
+
+<h2 id="ux"><span class="num">03</span>多元对比 A：用户使用体验</h2>
+<div class="tablewrap">
+<table>
+  <thead><tr><th style="width:14%">维度</th><th style="width:36%" class="col-dsh">DSH</th><th style="width:36%" class="col-cdx">Codex</th><th style="width:14%">优势方</th></tr></thead>
+  <tbody>
+    <tr>
+      <td><b>入口形态</b></td>
+      <td class="dim">六种宿主同源：Web GUI / TUI / Desktop(Electron) / ACP（编辑器 JSON-RPC stdio）/ Python SDK / headless CLI</td>
+      <td class="dim">CLI+TUI 为主，配 IDE 扩展（VS Code/Cursor/Windsurf、JetBrains、Xcode）、桌面端（2026-07 并入 ChatGPT 桌面应用）、云端、移动端 Codex Remote</td>
+      <td><span class="b win-cdx">Codex</span><br><span style="font-size:12px;color:var(--fg-mute)">覆盖面更广、更产品化</span></td>
+    </tr>
+    <tr>
+      <td><b>上手成本</b></td>
+      <td class="dim">高：Node ≥22 + pnpm，profile / bundle / patch 是要学的概念；<code>dsh plugin --profile web add …</code> 之后仍需重启宿主</td>
+      <td class="dim">低：<code>npm i -g @openai/codex</code> → <code>codex login</code>（ChatGPT 登录或 <code>--with-api-key</code>）→ 直接用</td>
+      <td><span class="b win-cdx">Codex</span></td>
+    </tr>
+    <tr>
+      <td><b>交互界面</b></td>
+      <td class="dim">Web GUI 信息密度高：会话树、工具审批弹窗、子代理视图、token 计量、插件市场；TUI 与桌面端并存</td>
+      <td class="dim">Ratatui 全屏 TUI，手感成熟；<code>/diff</code>、<code>/permissions</code>、<code>/model</code>、<code>/agent</code>、<code>/fork</code>、<code>/side</code> 等约 50 个斜杠命令；编辑器内就地 diff</td>
+      <td><span class="b win-tie">平手</span><br><span style="font-size:12px;color:var(--fg-mute)">偏好图形界面选 DSH，偏好终端选 Codex</span></td>
+    </tr>
+    <tr>
+      <td><b>权限与审批</b></td>
+      <td class="dim">策略仅 <code>ask</code> / <code>never</code> 两档（本机核实）；沙箱模式 <code>workspace-write</code> / <code>danger-full-access</code>；审批以会话内事件呈现</td>
+      <td class="dim"><code>on-request</code>（默认）/ <code>never</code> / <b>granular</b>（sandbox_approval、rules、mcp_elicitations、request_permissions、skill_approval）+ <b><code>approvals_reviewer = user | auto_review</code></b>（自动审批者）</td>
+      <td><span class="b win-cdx">Codex</span></td>
+    </tr>
+    <tr>
+      <td><b>会话恢复</b></td>
+      <td class="dim">resume / fork；会话为带版本号的 <code>session.v3.jsonl.zstd</code>，附标题、统计、查询、投影</td>
+      <td class="dim"><code>resume</code>（<code>--last</code>/<code>--all</code>）、<code>fork</code>、archive/unarchive/delete、<code>/side</code> 临时会话、<code>--ephemeral</code> 不落盘；自动 + 手动 compaction</td>
+      <td><span class="b win-cdx">Codex</span><br><span style="font-size:12px;color:var(--fg-mute)">粒度更细；但见风险章节</span></td>
+    </tr>
+    <tr>
+      <td><b>脚本化 / CI</b></td>
+      <td class="dim">headless profile + Python SDK（jsonrpc），事件协议为 DSH 自有 session 事件</td>
+      <td class="dim"><code>exec --json</code>（JSONL 事件流）、<code>--output-schema</code>（结构化输出）、<code>-o/--output-last-message</code>、<code>exec-server</code>、<code>app-server</code></td>
+      <td><span class="b win-cdx">Codex</span></td>
+    </tr>
+    <tr>
+      <td><b>成本可见性</b></td>
+      <td class="dim">内建 token 计量（input / cache / output）；生态插件可做账本与预算（如 <code>@kenz1117/dsh-ui-usage-billing</code>）</td>
+      <td class="dim">逐轮 <code>token_count</code>（含 cached / reasoning），<code>/usage</code>、<code>/status</code>、<code>account/rateLimits/read</code>；但 usage/限流 API <b>需 ChatGPT 登录态</b>，API key / Bedrock 拿不到</td>
+      <td><span class="b win-dsh">DSH</span><br><span style="font-size:12px;color:var(--fg-mute)">不依赖订阅态即可核算</span></td>
+    </tr>
+    <tr>
+      <td><b>中文与 i18n</b></td>
+      <td class="dim">中英双语一等公民：文档 <code>*.zh.md</code> + <code>*.i18n.yaml</code>，品牌/贡献指南/README 全双语</td>
+      <td class="dim">英文为主</td>
+      <td><span class="b win-dsh">DSH</span></td>
+    </tr>
+    <tr>
+      <td><b>隐私默认值</b></td>
+      <td class="dim">遥测<b>反馈门控</b>：OTel 后端在 <code>FEEDBACK_ONLY</code> 模式下仅在用户显式提交反馈后才释放日志前缀（本机源码核实）</td>
+      <td class="dim">匿名指标<b>默认开启</b>（<code>[analytics] enabled = false</code> 关闭）；transcript 默认落盘；OTel 需显式开启</td>
+      <td><span class="b win-dsh">DSH</span></td>
+    </tr>
+    <tr>
+      <td><b>生态获取</b></td>
+      <td class="dim"><code>dsh plugin --profile web add &lt;pkg&gt;</code>（底层是 profile 内 pnpm），市场数据来自社区精选目录（约 3800+ 条目，第三方质量参差）</td>
+      <td class="dim"><code>codex marketplace add &lt;repo&gt;</code>、<code>codex plugin</code>、MCP、skills；官方 skills/plugins 仓库</td>
+      <td><span class="b win-tie">平手</span></td>
+    </tr>
+  </tbody>
+</table>
+</div>
+
+<h2 id="arch"><span class="num">04</span>多元对比 B：实现架构</h2>
+<div class="tablewrap">
+<table>
+  <thead><tr><th style="width:14%">维度</th><th style="width:36%" class="col-dsh">DSH</th><th style="width:36%" class="col-cdx">Codex</th><th style="width:14%">优势方</th></tr></thead>
+  <tbody>
+    <tr>
+      <td><b>语言与仓库</b></td>
+      <td class="dim">纯 TypeScript / Node（engines <code>^22.19 || &gt;=24</code>），pnpm 单仓 <b>273 个包</b>，54 个分域；原生 addon 单独一层</td>
+      <td class="dim">Rust <code>codex-rs</code> 工作区（约 60+ crate：<code>codex-core</code>/<code>codex-tui</code>/<code>codex-exec</code>/<code>codex-app-server</code>/<code>codex-linux-sandbox</code>…）+ TS 启动器；本机实测原生二进制为 <code>x86_64-unknown-linux-musl</code> 静态链接，并自带一份 <code>rg</code></td>
+      <td><span class="b win-cdx">Codex</span><br><span style="font-size:12px;color:var(--fg-mute)">零依赖单二进制、启动快</span></td>
+    </tr>
+    <tr>
+      <td><b>内核与协议</b></td>
+      <td class="dim">Cordis 插件/IoC 树为本体；对外 ACP（JSON-RPC stdio）、Python SDK；无"远程接管 TUI"</td>
+      <td class="dim"><code>app-server</code>：双向 JSON-RPC 2.0，thread/turn/item 原语（<code>thread/start|resume|fork</code>、<code>turn/start|steer|interrupt</code>、<code>command/exec</code>、<code>account/usage/read</code>），stdio / WebSocket / Unix socket；<code>codex --remote ws://…</code></td>
+      <td><span class="b win-cdx">Codex</span></td>
+    </tr>
+    <tr>
+      <td><b>开放边界</b></td>
+      <td class="dim"><b>全栈 MIT</b>：CLI、Web GUI、Desktop、SDK、以及可改宿主组合的 bundle 栈与 <code>cordis.patch.yml</code> patch 层（<code>--dump-config</code> 可静态检视）</td>
+      <td class="dim">开放：CLI、SDK、app-server、skills/plugins 仓库（<b>Apache-2.0</b>）；封闭：IDE 扩展、Codex Cloud、模型</td>
+      <td><span class="b win-dsh">DSH</span></td>
+    </tr>
+    <tr>
+      <td><b>沙箱与隔离</b></td>
+      <td class="dim"><code>sandbox-local</code> 按平台自动选后端（Linux / macOS / <b>Windows ACL</b>），<b>fail-closed</b>（无可用后端则 <code>SANDBOX_UNAVAILABLE</code>，绝不静默裸跑）并上报 <code>full</code>/<code>partial</code> 执行强度；<code>sandbox-policy</code> 逐调用解析；可选 E2B 远程 Linux 沙箱（默认不启用）</td>
+      <td class="dim">macOS Seatbelt；Linux <b>bwrap + seccomp</b>（Landlock 兜底）；Windows restricted token（elevated/unelevated）；<b>保护区路径</b> <code>.git</code>/<code>.agents</code>/<code>.codex</code> 即使 workspace-write 也递归只读；网络<b>默认关闭</b> + <code>features.network_proxy</code> 白名单代理；独立 <code>codex sandbox</code> 命令可复用</td>
+      <td><span class="b win-cdx">Codex</span><br><span style="font-size:12px;color:var(--fg-mute)">深度更强；DSH 的 fail-closed 与执行强度上报是特色</span></td>
+    </tr>
+    <tr>
+      <td><b>扩展模型</b></td>
+      <td class="dim"><b>可改宿主组合</b>：bundle 层 + patch 层 + <code>--patch</code> 叠加；MCP、hooks（<b>兼容 codex / claude-code 协议</b>）、skills、插件市场、presets</td>
+      <td class="dim"><b>枚举好的接口</b>：AGENTS.md 链（override + 32 KiB 上限）、MCP（stdio / HTTP / OAuth）、skills（<code>SKILL.md</code>）、plugins + marketplaces（local/Git/npm/remote）、<b>hooks 12+ 事件</b>（command 与 mcp_tool 两类 handler、哈希信任审查）、自定义 agent TOML</td>
+      <td><span class="b win-tie">取向不同</span><br><span style="font-size:12px;color:var(--fg-mute)">要"改内核"选 DSH，要"标准接口"选 Codex</span></td>
+    </tr>
+    <tr>
+      <td><b>模型接入</b></td>
+      <td class="dim"><b>Provider 中立</b>：DeepSeek 官方 / 自定义 base URL / 第三方路由与中转站；凭据 seam；订阅与中转站识别</td>
+      <td class="dim">推荐 GPT-5.6 <code>sol</code>/<code>terra</code>/<code>luna</code> 与 GPT-6 <code>astra</code>（云端模型不可换）；第三方走 <code>[model_providers.*]</code>，但要求 <code>wire_api = responses</code>（Chat Completions 弃用）；内建 Bedrock；<code>--oss</code> + lmstudio/ollama；模型退役频繁</td>
+      <td><span class="b win-dsh">DSH</span></td>
+    </tr>
+    <tr>
+      <td><b>会话持久化</b></td>
+      <td class="dim"><code>$DSH_HOME/sessions/--&lt;cwd&gt;--/&lt;id&gt;/session.v3.jsonl.zstd</code>：<b>带版本号</b>、zstd 多帧、事件可重放、逐 step usage；配会话查询/统计/标题/投影子系统</td>
+      <td class="dim"><code>~/.codex/sessions/YYYY/MM/DD/rollout-*.jsonl</code>（<code>{timestamp,type,payload}</code>）+ <code>archived_sessions/</code> + <code>history.jsonl</code> + SQLite 状态库；hook 文档明确声明 <b>transcript 格式不是稳定接口</b></td>
+      <td><span class="b win-dsh">DSH</span><br><span style="font-size:12px;color:var(--fg-mute)">格式有版本契约</span></td>
+    </tr>
+    <tr>
+      <td><b>多代理与编排</b></td>
+      <td class="dim"><code>subagent</code>（后台、持久）、<code>subagent_fork</code>（继承对话）、<code>workflow</code>（JS 扇出 + 阶段 + JSON Schema 结构化）、<code>ralph</code>（fresh-agent 轮次）、<code>goal</code>（跨轮目标、可暂停/恢复/阻塞）；可把 <b>Codex / Claude Code</b> 作为子代理后端</td>
+      <td class="dim">子代理默认开启 + 内建 <code>default</code>/<code>worker</code>/<code>explorer</code> + 并发上限 + <code>/agent</code> + Ultra 模式主动委派；云并行任务；Codex 托管与永久 git worktree</td>
+      <td><span class="b win-dsh">DSH</span><br><span style="font-size:12px;color:var(--fg-mute)">编排"形状"更多；Codex 已不缺席</span></td>
+    </tr>
+    <tr>
+      <td><b>企业治理</b></td>
+      <td class="dim">未见等价的企业策略强制层（未穷尽核实）</td>
+      <td class="dim"><code>requirements.toml</code> + MDM 钉死 mode / profile / reviewer / hooks；workload identity federation、access token、service account</td>
+      <td><span class="b win-cdx">Codex</span></td>
+    </tr>
+    <tr>
+      <td><b>工程与质量体系</b></td>
+      <td class="dim">期望快照测试（<code>*.expected.e2e.ts</code>）、多套 vitest 配置（e2e / bench / snapshot / web-perf / stress）、i18n 校验、change-scope、重复度扫描、覆盖率分区</td>
+      <td class="dim">Rust 单测/集成测试、CI；本机可验证的是 musl 静态产物与多平台 optionalDependencies 打包</td>
+      <td><span class="b win-tie">未充分比较</span></td>
+    </tr>
+  </tbody>
+</table>
+</div>
+
+<h2 id="diagram"><span class="num">05</span>架构示意</h2>
+<div class="diagram">
+<pre>┌──────────────────────────── DSH (MIT, TS/Node, 273 包) ─────────────────────────────┐
+│  客户端层    Web GUI │ TUI │ Desktop(Electron) │ ACP(编辑器) │ Python SDK │ headless │
+│                                    ▲  同一会话内核                                    │
+│  宿主组合    bundles 栈 ──► cordis.patch.yml ──► --patch ──►  --dump-config 可检视     │
+│  能力层      tools │ skills │ hooks(兼容 codex/claude) │ MCP │ subagent/workflow/      │
+│              ralph/goal │ jobs │ schedule │ LSP │ terminal                            │
+│  模型层      provider 中立：deepseek 官方 │ 自定义 base URL │ 第三方路由/中转站         │
+│  隔离层      sandbox-local(Linux/macOS/Windows ACL, fail-closed) │ E2B 远程沙箱(可选)  │
+│  持久化      $DSH_HOME/sessions/--&lt;cwd&gt;--/&lt;id&gt;/session.v3.jsonl.zstd（带版本、zstd 帧）│
+└──────────────────────────────────────────────────────────────────────────────────────┘
+        │ 可直接把 Codex 当子代理（packages/subagent/subagent-codex）
+        ▼
+┌────────────────────── Codex (Apache-2.0 CLI, Rust 核心) ─────────────────────────────┐
+│  客户端层    Ratatui TUI │ IDE 扩展(闭源) │ 桌面(并入 ChatGPT) │ Cloud(闭源) │ 移动   │
+│  内核协议    app-server：JSON-RPC 2.0 · thread/turn/item · stdio/WS/Unix · --remote   │
+│  执行层      shell │ apply_patch │ unified exec │ MCP 工具 │ 后台终端                 │
+│  扩展层      AGENTS.md 链 │ skills │ plugins+marketplaces │ hooks 12+ │ subagents     │
+│  隔离层      Seatbelt │ bwrap+seccomp(Landlock 兜底) │ Windows token │ 网络默认关     │
+│  持久化      ~/.codex/sessions/YYYY/MM/DD/rollout-*.jsonl + SQLite（格式非稳定契约）  │
+└──────────────────────────────────────────────────────────────────────────────────────┘
+</pre>
+</div>
+
+<h2 id="pros"><span class="num">06</span>优劣势对照</h2>
+<div class="cols">
+  <div class="box dsh">
+    <h4 style="color:var(--dsh)">DSH 优势</h4>
+    <ul>
+      <li class="ok"><b>模型自由</b>：换 provider / 中转站 / 本地模型不动宿主</li>
+      <li class="ok"><b>可编程到骨头</b>：插件能改宿主组合，而非只挂工具</li>
+      <li class="ok"><b>多客户端同源</b>：Web / TUI / Desktop / 编辑器 / SDK 共用一个会话内核</li>
+      <li class="ok"><b>编排形状丰富</b>：subagent / workflow / ralph / goal</li>
+      <li class="ok"><b>沙箱 fail-closed</b> + 执行强度上报，可接 E2B 云沙箱</li>
+      <li class="ok"><b>隐私默认保守</b>（遥测反馈门控）、<b>中文一等公民</b>、<b>全栈 MIT</b></li>
+      <li class="ok">会话格式<b>有版本契约</b></li>
+    </ul>
+    <h4 style="color:var(--fg-dim); margin-top:16px">DSH 短板</h4>
+    <ul>
+      <li class="no"><b>上手重</b>：Node + pnpm + profile/bundle 概念，rc 阶段</li>
+      <li class="no"><b>审批仅两档</b>，无自动审批者、无保护区路径、无网络白名单代理</li>
+      <li class="no"><b>无官方云执行/托管</b>（E2B 需自配密钥且默认关闭）</li>
+      <li class="no">生态年轻，第三方插件质量与安全需自行评估</li>
+      <li class="no">未见企业策略强制层（未穷尽核实）</li>
+    </ul>
+  </div>
+  <div class="box cdx">
+    <h4 style="color:var(--cdx)">Codex 优势</h4>
+    <ul>
+      <li class="ok"><b>开箱即用</b>：装完登录即可干活，心智负担低</li>
+      <li class="ok"><b>沙箱工程最深</b>：三平台原生后端、保护区路径、网络默认关 + 白名单代理、独立 <code>codex sandbox</code></li>
+      <li class="ok"><b>审批最细</b>：granular 子策略 + <code>auto_review</code> 自动审批者</li>
+      <li class="ok"><b>CI 协议成熟</b>：<code>exec --json</code> / <code>--output-schema</code> / app-server</li>
+      <li class="ok"><b>产品面广</b>：TUI / IDE / 桌面 / 云 / 移动 / PR 评审一体化</li>
+      <li class="ok"><b>零依赖单二进制</b>（musl 静态），启动快</li>
+      <li class="ok">企业治理：<code>requirements.toml</code> + MDM + workload identity</li>
+    </ul>
+    <h4 style="color:var(--fg-dim); margin-top:16px">Codex 短板</h4>
+    <ul>
+      <li class="no"><b>模型绑定倾向明显</b>：云模型不可换，第三方须 <code>responses</code> API，模型退役频繁</li>
+      <li class="no"><b>关键层闭源</b>：IDE 扩展、Cloud、模型；Cloud 无法自托管</li>
+      <li class="no"><b>匿名遥测默认开</b>、transcript 默认落盘</li>
+      <li class="no"><b>成本不透明</b>：额度与 ChatGPT 共享，usage API 需登录态</li>
+      <li class="no"><b>已知持久化缺陷</b>：rollout 错误在 resume/fork 时被静默丢弃</li>
+      <li class="no">hooks 非完整强制边界；网络代理不覆盖搜索/MCP/浏览器/云</li>
+    </ul>
+  </div>
+</div>
+
+<h2 id="choose"><span class="num">07</span>选型矩阵</h2>
+<div class="tablewrap">
+<table>
+  <thead><tr><th style="width:34%">场景</th><th style="width:22%">推荐</th><th style="width:44%">理由</th></tr></thead>
+  <tbody>
+    <tr><td>个人/小团队快速写代码，追求稳定</td><td><span class="b win-cdx">Codex</span></td><td>登录即用，TUI 手感成熟，沙箱/审批默认值安全</td></tr>
+    <tr><td>CI / 批量改造，需要结构化产出</td><td><span class="b win-cdx">Codex</span></td><td><code>exec --json</code> + <code>--output-schema</code> + <code>-o</code> 几乎为流水线而生</td></tr>
+    <tr><td>强合规 / 需要精细权限边界</td><td><span class="b win-cdx">Codex</span></td><td>保护区路径、网络白名单代理、granular 审批、MDM 钉死</td></tr>
+    <tr><td>私有化 / 多模型 / 接中转站</td><td><span class="b win-dsh">DSH</span></td><td>模型层中立，MIT 全栈可自持，不依赖外部云</td></tr>
+    <tr><td>搭团队级 agent 平台、长任务编排</td><td><span class="b win-dsh">DSH</span></td><td>workflow 扇出 / ralph 轮次 / goal 跨轮 + 插件市场 + 多客户端</td></tr>
+    <tr><td>要改宿主行为本身（非外挂工具）</td><td><span class="b win-dsh">DSH</span></td><td>只有 DSH 开放组合层：bundle 栈 + patch 层可编程</td></tr>
+    <tr><td>既要成熟执行器又要强编排</td><td><span class="b win-dsh">DSH</span> + <span class="b win-cdx">Codex</span></td><td>DSH 当宿主，<code>subagent-codex</code> 跑 Codex，用 <code>permissionMode</code> 约束其沙箱/审批</td></tr>
+  </tbody>
+</table>
+</div>
+
+<h2 id="risks"><span class="num">08</span>风险与已知缺陷</h2>
+<div class="tablewrap">
+<table>
+  <thead><tr><th style="width:22%">对象</th><th style="width:52%">问题</th><th style="width:26%">证据强度</th></tr></thead>
+  <tbody>
+    <tr><td>Codex</td><td>rollout 持久化错误在 resume/fork 时被静默丢弃（<code>core/src/session/mod.rs</code>），崩溃后可能截断</td><td><span class="b doc">官方仓库源码</span></td></tr>
+    <tr><td>Codex</td><td>Windows / side-chat 的 "duplicate rollout ordinal" 缺陷（issues #35385 / #42157 / #42027 / #43142）</td><td><span class="b doc">官方议题</span></td></tr>
+    <tr><td>Codex</td><td>hooks 不是完整强制边界；<code>network_proxy</code> 仅覆盖沙箱内命令流量，<b>不含</b> web search / MCP / apps / browser / cloud</td><td><span class="b third">第三方实测</span></td></tr>
+    <tr><td>Codex</td><td>成本不透明：Codex 与 ChatGPT 共享额度；usage / rate-limit API 需 ChatGPT 登录态</td><td><span class="b doc">官方文档</span></td></tr>
+    <tr><td>Codex</td><td>上下文窗口缩水争议（第三方追踪称 372k→272k、超额静默计费）——<b>原文未取到，数字未核实</b></td><td><span class="b third">未核实</span></td></tr>
+    <tr><td>Codex</td><td>文档自相矛盾：Approvals 页仍列 <code>unless-trusted</code>/<code>on-failure</code>，config 参考称已退役/弃用</td><td><span class="b doc">官方文档冲突</span></td></tr>
+    <tr><td>DSH</td><td>rc 阶段（0.1.5-rc.2）：插件 API 与客户端行为可能仍有不兼容变更</td><td><span class="b local">本机</span></td></tr>
+    <tr><td>DSH</td><td>审批只有 <code>ask</code>/<code>never</code>，无 granular 子策略与自动审批者</td><td><span class="b local">本机源码</span></td></tr>
+    <tr><td>DSH</td><td>无保护路径（<code>.git</code> 等）与网络白名单代理；沙箱依赖平台后端可用性</td><td><span class="b local">本机源码</span></td></tr>
+    <tr><td>DSH</td><td>第三方插件高权限（读会话日志、经凭据 seam 读 key、网络），收录不等于背书</td><td><span class="b doc">插件文档</span></td></tr>
+  </tbody>
+</table>
+</div>
+
+<h2 id="unverified"><span class="num">09</span>未能核实的事项</h2>
+<ul>
+  <li>Codex <code>cloud</code> / <code>app-server</code> / <code>exec-server</code> 的稳定契约（官方仍标 experimental，相关博客返回 403）</li>
+  <li><code>unless-trusted</code> / <code>on-failure</code> 在本机 0.121.0 二进制中是否仍可用（文档自相矛盾）</li>
+  <li>Codex IDE 扩展内部是否直连 app-server；<code>codex plugin</code> / marketplace 的包格式细节</li>
+  <li>Codex rollout JSONL 的稳定性（hooks 文档明确称其非稳定接口）</li>
+  <li>DSH 是否在别处存在等价于 <code>requirements.toml</code> 的企业策略层（未穷尽检索）</li>
+  <li>Codex Rust 测试体系与 DSH 质量工程的等价性比较（未做逐项对照）</li>
+</ul>
+
+<h2 id="refs"><span class="num">10</span>主要来源</h2>
+<ul style="font-size:13.5px">
+  <li><b>DSH</b>：本机源码 <code>/home/kevin/apps/deepseek-harness</code>（<code>package.json</code>、<code>apps/cli/README.md</code>、<code>packages/{sandbox,subagent,hooks,feedback,interaction}/</code>）；本机命令实测（<code>--profile headless</code>、<code>--dump-config</code>、会话日志）</li>
+  <li><b>Codex</b>：本机 <code>@openai/codex@0.121.0</code> 命令表与安装产物；官方文档 <a href="https://learn.chatgpt.com/docs/sandboxing">sandboxing</a>、<a href="https://learn.chatgpt.com/docs/agent-approvals-security">approvals &amp; security</a>、<a href="https://learn.chatgpt.com/docs/app-server">app-server</a>、<a href="https://learn.chatgpt.com/docs/config-file/config-reference">config reference</a>、<a href="https://learn.chatgpt.com/docs/agent-configuration/agents-md">AGENTS.md</a>、<a href="https://learn.chatgpt.com/docs/cloud">cloud</a>、<a href="https://learn.chatgpt.com/docs/open-source">open source</a>；仓库 <a href="https://github.com/openai/codex">openai/codex</a></li>
+  <li><b>第三方（已标注）</b>：<a href="https://www.infoworld.com/article/4198811/openais-codex-context-reduction-for-gpt-5-6-sparks-dissatisfaction-among-developers.html">InfoWorld 上下文缩水报道</a>、<a href="https://github.com/openai/codex/issues/35385">issue #35385</a>、<a href="https://raw.githubusercontent.com/simonw/research/main/codex-sandbox-investigation/_summary.md">sandbox 实测</a></li>
+  <li>完整 Codex 技术画像（11 节、20 条引用）：<code>docs/codex-profile.md</code></li>
+</ul>
+
+<footer>
+  报告口径：Codex 侧以官方文档 + 本机 0.121.0 实测为准，第三方结论均已标注且不改写为事实；DSH 侧为本机 0.1.5-rc.2 源码与运行实测。<br>
+  两者迭代速度都很快，本报告的结论绑定上述版本；引用转载请保留证据等级标注。
+</footer>
+
+</div>
+
+
+</body></html>

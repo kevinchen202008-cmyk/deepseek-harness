@@ -1,0 +1,551 @@
+<!DOCTYPE html>
+<!-- saved from url=(0131)file:///D:/Projects/DeepSeekHarness-Project/deliverables/comparison/DSH-vs-Codex-%E5%AF%B9%E6%AF%94%E5%88%86%E6%9E%90-20260918.html -->
+<html lang="zh-CN"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light">
+  <title>DeepSeek Harness 与 OpenAI Codex 多维对比分析</title>
+  <style>
+    :root {
+      --ink: #172033;
+      --muted: #5d687d;
+      --line: #dce3ee;
+      --paper: #ffffff;
+      --canvas: #f3f6fa;
+      --dsh: #126e82;
+      --dsh-soft: #e8f6f7;
+      --codex: #5b45c6;
+      --codex-soft: #f0edff;
+      --accent: #e09028;
+      --good: #18794e;
+      --warn: #9a6700;
+      --shadow: 0 12px 36px rgba(30, 42, 66, .09);
+    }
+
+    * { box-sizing: border-box; }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      margin: 0;
+      color: var(--ink);
+      background: var(--canvas);
+      font-family: "Segoe UI", "Microsoft YaHei", system-ui, sans-serif;
+      line-height: 1.65;
+    }
+
+    a { color: #2855a6; text-decoration-thickness: 1px; text-underline-offset: 3px; }
+
+    .page {
+      width: min(1180px, calc(100% - 32px));
+      margin: 24px auto 64px;
+    }
+
+    .hero {
+      position: relative;
+      overflow: hidden;
+      min-height: 390px;
+      padding: 56px;
+      color: white;
+      border-radius: 24px;
+      background:
+        radial-gradient(circle at 82% 18%, rgba(255,255,255,.18), transparent 28%),
+        linear-gradient(128deg, #123d55 0%, #126e82 46%, #5140ae 100%);
+      box-shadow: var(--shadow);
+    }
+
+    .hero::after {
+      content: "";
+      position: absolute;
+      right: -90px;
+      bottom: -120px;
+      width: 390px;
+      height: 390px;
+      border: 1px solid rgba(255,255,255,.22);
+      border-radius: 50%;
+      box-shadow: 0 0 0 55px rgba(255,255,255,.05), 0 0 0 110px rgba(255,255,255,.035);
+    }
+
+    .eyebrow {
+      margin: 0 0 14px;
+      font-size: 13px;
+      font-weight: 700;
+      letter-spacing: .16em;
+      text-transform: uppercase;
+      opacity: .82;
+    }
+
+    h1 {
+      max-width: 840px;
+      margin: 0;
+      font-size: clamp(35px, 5vw, 66px);
+      line-height: 1.12;
+      letter-spacing: -.035em;
+    }
+
+    .hero .lead {
+      max-width: 760px;
+      margin: 24px 0 30px;
+      font-size: 19px;
+      color: rgba(255,255,255,.9);
+    }
+
+    .meta { display: flex; flex-wrap: wrap; gap: 10px; }
+
+    .tag {
+      display: inline-flex;
+      align-items: center;
+      min-height: 32px;
+      padding: 5px 12px;
+      border: 1px solid rgba(255,255,255,.24);
+      border-radius: 999px;
+      background: rgba(255,255,255,.10);
+      font-size: 13px;
+      backdrop-filter: blur(8px);
+    }
+
+    .toc {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin: 18px 0 34px;
+      padding: 18px 20px;
+      background: var(--paper);
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      box-shadow: 0 5px 20px rgba(30,42,66,.05);
+    }
+
+    .toc a {
+      padding: 6px 10px;
+      color: var(--muted);
+      font-size: 14px;
+      text-decoration: none;
+      border-radius: 8px;
+    }
+
+    .toc a:hover { background: #eef2f8; color: var(--ink); }
+
+    section {
+      margin: 30px 0;
+      padding: 34px;
+      background: var(--paper);
+      border: 1px solid var(--line);
+      border-radius: 20px;
+      box-shadow: 0 8px 28px rgba(30,42,66,.055);
+    }
+
+    h2 { margin: 0 0 20px; font-size: 28px; line-height: 1.25; letter-spacing: -.02em; }
+    h3 { margin: 0 0 10px; font-size: 19px; }
+    p { margin: 10px 0; }
+    ul { margin: 10px 0; padding-left: 22px; }
+    li + li { margin-top: 5px; }
+
+    .section-kicker {
+      display: block;
+      margin-bottom: 7px;
+      color: var(--accent);
+      font-size: 12px;
+      font-weight: 800;
+      letter-spacing: .14em;
+      text-transform: uppercase;
+    }
+
+    .verdict {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 18px;
+    }
+
+    .verdict-card, .card {
+      padding: 22px;
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      background: #fbfcfe;
+    }
+
+    .verdict-card.dsh { border-top: 5px solid var(--dsh); background: var(--dsh-soft); }
+    .verdict-card.codex { border-top: 5px solid var(--codex); background: var(--codex-soft); }
+
+    .verdict-card strong { display: block; margin-bottom: 7px; font-size: 21px; }
+
+    .headline {
+      margin: 22px 0 0;
+      padding: 18px 20px;
+      border-left: 5px solid var(--accent);
+      border-radius: 0 12px 12px 0;
+      background: #fff8ec;
+      font-size: 17px;
+    }
+
+    .table-wrap { overflow-x: auto; border: 1px solid var(--line); border-radius: 14px; }
+
+    table { width: 100%; border-collapse: collapse; font-size: 14px; }
+    th, td { padding: 13px 14px; vertical-align: top; text-align: left; border-bottom: 1px solid var(--line); }
+    th { background: #edf2f8; color: #354158; font-size: 13px; white-space: nowrap; }
+    tr:last-child td { border-bottom: 0; }
+    tbody tr:hover { background: #fafcff; }
+    td:first-child { width: 15%; font-weight: 700; color: #354158; }
+
+    .arch-grid, .two-col, .score-grid, .choice-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 18px;
+    }
+
+    .arch {
+      padding: 22px;
+      border: 1px solid var(--line);
+      border-radius: 16px;
+    }
+
+    .arch.dsh { background: linear-gradient(180deg, var(--dsh-soft), #fff 62%); }
+    .arch.codex { background: linear-gradient(180deg, var(--codex-soft), #fff 62%); }
+
+    .stack { display: grid; gap: 9px; margin: 16px 0; }
+
+    .layer {
+      padding: 10px 12px;
+      text-align: center;
+      border: 1px solid rgba(32,47,73,.18);
+      border-radius: 9px;
+      background: rgba(255,255,255,.82);
+      font-size: 13px;
+      font-weight: 650;
+    }
+
+    .arrow { height: 12px; text-align: center; color: var(--muted); line-height: 12px; }
+
+    .score-card { padding: 20px; border: 1px solid var(--line); border-radius: 15px; }
+    .score-card h3 { display: flex; justify-content: space-between; gap: 12px; }
+    .score-note { color: var(--muted); font-size: 12px; font-weight: 500; }
+    .metric { margin-top: 13px; }
+    .metric-head { display: flex; justify-content: space-between; margin-bottom: 5px; font-size: 13px; }
+    .bar { height: 8px; overflow: hidden; background: #e9edf3; border-radius: 99px; }
+    .fill { height: 100%; border-radius: inherit; }
+    .fill.dsh { background: var(--dsh); }
+    .fill.codex { background: var(--codex); }
+
+    .pill {
+      display: inline-block;
+      margin: 2px 4px 2px 0;
+      padding: 2px 8px;
+      border-radius: 999px;
+      background: #edf1f6;
+      color: #445168;
+      font-size: 12px;
+    }
+
+    .pros { border-left: 4px solid var(--good); }
+    .risks { border-left: 4px solid var(--warn); }
+
+    .choice {
+      position: relative;
+      padding: 22px 22px 20px;
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      background: #fbfcfe;
+    }
+
+    .choice::before {
+      content: attr(data-label);
+      display: inline-block;
+      margin-bottom: 10px;
+      padding: 3px 9px;
+      border-radius: 999px;
+      color: white;
+      background: var(--dsh);
+      font-size: 12px;
+      font-weight: 750;
+    }
+
+    .choice.codex::before { background: var(--codex); }
+    .choice.hybrid::before { background: var(--accent); }
+
+    .note {
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .sources { columns: 2; column-gap: 34px; }
+    .sources li { break-inside: avoid; margin-bottom: 9px; }
+
+    footer { padding: 14px 4px; color: var(--muted); font-size: 12px; text-align: center; }
+
+    @media (max-width: 760px) {
+      .page { width: min(100% - 20px, 1180px); margin-top: 10px; }
+      .hero { min-height: auto; padding: 34px 24px; border-radius: 18px; }
+      section { padding: 23px 19px; border-radius: 16px; }
+      .verdict, .arch-grid, .two-col, .score-grid, .choice-grid { grid-template-columns: 1fr; }
+      .sources { columns: 1; }
+    }
+
+    @media print {
+      @page { size: A4; margin: 13mm; }
+      body { background: white; font-size: 10pt; }
+      .page { width: 100%; margin: 0; }
+      .hero { min-height: 0; padding: 28px; border-radius: 0; box-shadow: none; }
+      .hero::after, .toc { display: none; }
+      section { margin: 12px 0; padding: 20px; box-shadow: none; break-inside: avoid; }
+      h1 { font-size: 28pt; }
+      h2 { font-size: 18pt; }
+      a { color: inherit; text-decoration: none; }
+    }
+  </style>
+</head>
+<body>
+  <main class="page">
+    <header class="hero">
+      <p class="eyebrow">Agent Platform Comparison · 2026</p>
+      <h1>DeepSeek Harness<br>与 OpenAI Codex</h1>
+      <p class="lead">从用户体验、Agent 能力、实现架构、扩展机制、安全治理、部署运维与适用场景出发，比较两条不同的智能体产品路线。</p>
+      <div class="meta">
+        <span class="tag">分析日期：2026-09-18</span>
+        <span class="tag">DSH：0.1.6-alpha.1 源码基线</span>
+        <span class="tag">Codex：以 OpenAI 官方资料为准</span>
+        <span class="tag">单文件 · 可离线阅读与打印</span>
+      </div>
+    </header>
+
+    <nav class="toc" aria-label="报告目录">
+      <a href="file:///D:/Projects/DeepSeekHarness-Project/deliverables/comparison/DSH-vs-Codex-%E5%AF%B9%E6%AF%94%E5%88%86%E6%9E%90-20260918.html#summary">执行摘要</a>
+      <a href="file:///D:/Projects/DeepSeekHarness-Project/deliverables/comparison/DSH-vs-Codex-%E5%AF%B9%E6%AF%94%E5%88%86%E6%9E%90-20260918.html#matrix">多维矩阵</a>
+      <a href="file:///D:/Projects/DeepSeekHarness-Project/deliverables/comparison/DSH-vs-Codex-%E5%AF%B9%E6%AF%94%E5%88%86%E6%9E%90-20260918.html#ux">用户体验</a>
+      <a href="file:///D:/Projects/DeepSeekHarness-Project/deliverables/comparison/DSH-vs-Codex-%E5%AF%B9%E6%AF%94%E5%88%86%E6%9E%90-20260918.html#architecture">实现架构</a>
+      <a href="file:///D:/Projects/DeepSeekHarness-Project/deliverables/comparison/DSH-vs-Codex-%E5%AF%B9%E6%AF%94%E5%88%86%E6%9E%90-20260918.html#extension">扩展生态</a>
+      <a href="file:///D:/Projects/DeepSeekHarness-Project/deliverables/comparison/DSH-vs-Codex-%E5%AF%B9%E6%AF%94%E5%88%86%E6%9E%90-20260918.html#security">安全与治理</a>
+      <a href="file:///D:/Projects/DeepSeekHarness-Project/deliverables/comparison/DSH-vs-Codex-%E5%AF%B9%E6%AF%94%E5%88%86%E6%9E%90-20260918.html#scores">能力侧写</a>
+      <a href="file:///D:/Projects/DeepSeekHarness-Project/deliverables/comparison/DSH-vs-Codex-%E5%AF%B9%E6%AF%94%E5%88%86%E6%9E%90-20260918.html#decision">选型建议</a>
+      <a href="file:///D:/Projects/DeepSeekHarness-Project/deliverables/comparison/DSH-vs-Codex-%E5%AF%B9%E6%AF%94%E5%88%86%E6%9E%90-20260918.html#sources">依据与来源</a>
+    </nav>
+
+    <section id="summary">
+      <span class="section-kicker">Executive summary</span>
+      <h2>先看结论：两者并非完全同层竞争</h2>
+      <div class="verdict">
+        <article class="verdict-card dsh">
+          <strong>DSH：可组装的 Agent 平台</strong>
+          <p>更接近可自行部署、深度修改的 Agent 操作系统。优势是模型、工具、存储、沙箱、Agent Loop 和 UI 均可替换，适合建设自有平台。</p>
+        </article>
+        <article class="verdict-card codex">
+          <strong>Codex：产品化的编码 Agent</strong>
+          <p>更接近开箱即用的工程生产力产品，同时开放 CLI、SDK 和 app-server 作为执行框架。优势是本地、IDE、桌面端和云任务体验完整。</p>
+        </article>
+      </div>
+      <p class="headline"><strong>核心判断：</strong>马上提高开发效率，优先 Codex；建设私有化、多模型、可深度改造的 Agent 平台，优先 DSH。实际落地可以采用“Codex 做开发执行，DSH 做业务编排”的组合方案。</p>
+    </section>
+
+    <section id="matrix">
+      <span class="section-kicker">Comparison matrix</span>
+      <h2>多维对比矩阵</h2>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr><th>维度</th><th>DeepSeek Harness</th><th>OpenAI Codex</th><th>判断</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>定位</td><td>通用、可组装的 Agent Harness</td><td>编码 Agent 产品 + 开放执行框架</td><td>目标层级不同</td></tr>
+            <tr><td>开箱体验</td><td>需要安装、构建、配置模型与运行环境</td><td>登录后即可通过桌面端、CLI、IDE 或 Cloud 使用</td><td>Codex 更顺滑</td></tr>
+            <tr><td>模型策略</td><td>模型适配器可替换，厂商绑定较弱</td><td>与 OpenAI 模型和托管能力深度结合</td><td>DSH 更自由，Codex 集成更紧</td></tr>
+            <tr><td>本地工作</td><td>Web、CLI、桌面端、Headless、SDK</td><td>桌面端、CLI、IDE；本地目录与工具链集成成熟</td><td>Codex 产品化更强</td></tr>
+            <tr><td>云端任务</td><td>主要依赖自行部署或自建远端能力</td><td>隔离云环境、并行任务、GitHub/GitLab 等集成</td><td>Codex 明显领先</td></tr>
+            <tr><td>扩展深度</td><td>可替换 Agent Loop、存储、沙箱、模型和 UI</td><td>AGENTS.md、Skills、插件、MCP、Hooks、SDK、app-server</td><td>DSH 更深，Codex 更标准化</td></tr>
+            <tr><td>会话模型</td><td>追加式持久事件日志；模型上下文可从日志重建</td><td>执行框架维护会话、轮次、流式事件与审批</td><td>DSH 的数据语义更显式</td></tr>
+            <tr><td>并行开发</td><td>Subagent、Jobs、Workflow、实验性 Agent Teams</td><td>子 Agent、并行任务、Git worktree、Cloud 环境</td><td>Codex 用户体验更成熟</td></tr>
+            <tr><td>安全</td><td>跨平台沙箱、权限预设、一次性审批；未安全审计</td><td>操作系统沙箱、云容器、审批、网络控制、自动审批审查</td><td>Codex 默认治理更成熟</td></tr>
+            <tr><td>数据控制</td><td>可完全自托管，数据流向由部署者掌控</td><td>本地模式可控制工作区；Cloud 和模型访问依赖 OpenAI 服务</td><td>严格私有化倾向 DSH</td></tr>
+            <tr><td>运维成本</td><td>自行负责升级、兼容、监控、日志和恢复</td><td>本地客户端运维较轻，Cloud 由 OpenAI 管理</td><td>Codex 更省运维</td></tr>
+            <tr><td>成熟度</td><td>开发者预览，API 可能破坏性变化</td><td>完整产品，但快速演进中的新功能仍会变化</td><td>Codex 更适合直接生产使用</td></tr>
+            <tr><td>开放程度</td><td>MIT，整体产品架构高度透明</td><td>CLI、SDK、app-server 等开放；IDE 与 Cloud 等为托管/非开源部分</td><td>DSH 整体可控性更高</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section id="ux">
+      <span class="section-kicker">User experience</span>
+      <h2>用户使用体验：平台自由度与产品完成度的取舍</h2>
+      <div class="two-col">
+        <article class="card">
+          <h3 style="color:var(--dsh)">DSH 使用体验</h3>
+          <p><strong>优势：</strong>用户可以决定整个产品如何组合。Profile、Bundle 与 Patch 能定义不同 Agent 产品形态，同一套运行时可服务 Web、Headless、SDK 和自动化。</p>
+          <p><strong>摩擦：</strong>普通用户需要理解 Node、pnpm、模型凭据、Profile 和运行目录。本机实例运行在 WSL，通过 <code>127.0.0.1:3080</code> 访问，当前仍需自行承担进程驻留和重启。</p>
+          <p><span class="pill">适合平台工程师</span><span class="pill">适合研究团队</span><span class="pill">高自由度</span></p>
+        </article>
+        <article class="card">
+          <h3 style="color:var(--codex)">Codex 使用体验</h3>
+          <p><strong>优势：</strong>围绕代码库、任务、文件、Diff、终端、Review 和 Git worktree 构建统一体验，用户主要描述目标并审核结果。</p>
+          <p><strong>摩擦：</strong>Cloud、账号、额度和服务可用性形成外部依赖；深入修改底层模型路由和运行语义的自由度有限。</p>
+          <p><span class="pill">适合开发者</span><span class="pill">低上手成本</span><span class="pill">本地 + 云端</span></p>
+        </article>
+      </div>
+    </section>
+
+    <section id="architecture">
+      <span class="section-kicker">Implementation architecture</span>
+      <h2>实现架构：插件树与产品化执行框架</h2>
+      <div class="arch-grid">
+        <article class="arch dsh">
+          <h3>DSH：Cordis 插件树</h3>
+          <div class="stack" aria-label="DSH 架构示意">
+            <div class="layer">Web / Desktop / CLI / SDK / ACP</div>
+            <div class="arrow">↓</div>
+            <div class="layer">Profile + Bundle + cordis.patch.yml</div>
+            <div class="arrow">↓</div>
+            <div class="layer">Agent Loop · Events · Tools · Session Log</div>
+            <div class="arrow">↓</div>
+            <div class="layer">LLM · FS · Shell · Sandbox · Storage · Subagent</div>
+          </div>
+          <ul>
+            <li>“一切皆插件”，不存在必须修改的特权核心。</li>
+            <li>注册通过可撤销 effect 管理，插件卸载时回收。</li>
+            <li>能力按 Service Definition / Provider / Consumer 拆分。</li>
+            <li>追加式会话事件是恢复、审计和模型上下文的事实来源。</li>
+          </ul>
+        </article>
+        <article class="arch codex">
+          <h3>Codex：多界面共用执行框架</h3>
+          <div class="stack" aria-label="Codex 架构示意">
+            <div class="layer">App / CLI / IDE / Cloud / 自定义产品</div>
+            <div class="arrow">↓</div>
+            <div class="layer">SDK / app-server 客户端协议</div>
+            <div class="arrow">↓</div>
+            <div class="layer">Agent Loop · State · Streaming · Tools · Approval</div>
+            <div class="arrow">↓</div>
+            <div class="layer">OS Sandbox / Cloud Container · OpenAI Models</div>
+          </div>
+          <ul>
+            <li>CLI、SDK 和 app-server 是开放组件。</li>
+            <li>app-server 暴露会话、轮次、流式事件、中断与审批。</li>
+            <li>本地运行和托管 Cloud 使用不同隔离边界。</li>
+            <li>模型访问、IDE 扩展和托管服务不属于完全开放的同一层。</li>
+          </ul>
+        </article>
+      </div>
+      <p class="note">说明：Codex 的比较范围限于官方公开的执行框架和产品接口，不推断未公开的模型服务内部实现。</p>
+    </section>
+
+    <section id="extension">
+      <span class="section-kicker">Extensibility</span>
+      <h2>扩展机制：两者正在趋同，但扩展层级不同</h2>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>扩展需求</th><th>DSH</th><th>Codex</th></tr></thead>
+          <tbody>
+            <tr><td>项目规范</td><td>Workspace instructions、Skills、配置插件</td><td>AGENTS.md、Skills、Rules</td></tr>
+            <tr><td>外部系统</td><td>MCP、Web、Webhook、自定义 Tool 插件</td><td>MCP、Apps/Connectors、插件</td></tr>
+            <tr><td>重复流程</td><td>Skills、Workflow、Jobs、Schedule</td><td>Skills、Hooks、Automations</td></tr>
+            <tr><td>模型提供商</td><td>替换或新增 LLM Provider</td><td>在 Codex 支持的模型和产品配置内选择</td></tr>
+            <tr><td>Agent 核心</td><td>可以替换 Agent Loop 和事件消费者</td><td>可通过开源执行框架、SDK 或 app-server 集成，但托管产品核心受产品边界约束</td></tr>
+            <tr><td>自定义界面</td><td>客户端插件、Web/Desktop Host 与自定义 SDK 客户端</td><td>app-server、自定义宿主产品、MCP UI 资源</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section id="security">
+      <span class="section-kicker">Security &amp; governance</span>
+      <h2>安全治理：能力相似，成熟度与责任归属不同</h2>
+      <div class="two-col">
+        <article class="card risks">
+          <h3>DSH：部署者承担最终责任</h3>
+          <ul>
+            <li>支持 read-only、workspace-write、danger-full-access。</li>
+            <li>Linux 使用 bwrap/Landlock，macOS 使用 Seatbelt，Windows 使用受限令牌/ACL。</li>
+            <li>支持权限预设、一次性审批和自动化审批通道。</li>
+            <li>官方安全说明明确标注：实验性、未安全审计，沙箱不是唯一安全边界。</li>
+          </ul>
+        </article>
+        <article class="card pros">
+          <h3>Codex：默认治理更产品化</h3>
+          <ul>
+            <li>沙箱与审批策略分层，默认限制网络和工作区外写入。</li>
+            <li>Cloud 任务运行于隔离容器，并区分设置阶段与 Agent 阶段。</li>
+            <li>支持用户审批、自动审批审查与组织级受管配置。</li>
+            <li>危险全权限模式仍需要用户主动选择，不能替代人工审查。</li>
+          </ul>
+        </article>
+      </div>
+    </section>
+
+    <section id="scores">
+      <span class="section-kicker">Capability profile</span>
+      <h2>能力侧写</h2>
+      <p class="note">以下为相对侧写而非跑分；分值用于表达产品取向，不代表模型质量基准。</p>
+      <div class="score-grid">
+        <article class="score-card">
+          <h3><span>DeepSeek Harness</span><span class="score-note">平台型</span></h3>
+          <div class="metric"><div class="metric-head"><span>底层可定制性</span><strong>95</strong></div><div class="bar"><div class="fill dsh" style="width:95%"></div></div></div>
+          <div class="metric"><div class="metric-head"><span>模型与供应商自由度</span><strong>92</strong></div><div class="bar"><div class="fill dsh" style="width:92%"></div></div></div>
+          <div class="metric"><div class="metric-head"><span>私有部署控制</span><strong>92</strong></div><div class="bar"><div class="fill dsh" style="width:92%"></div></div></div>
+          <div class="metric"><div class="metric-head"><span>开箱体验</span><strong>55</strong></div><div class="bar"><div class="fill dsh" style="width:55%"></div></div></div>
+          <div class="metric"><div class="metric-head"><span>运维轻量度</span><strong>38</strong></div><div class="bar"><div class="fill dsh" style="width:38%"></div></div></div>
+        </article>
+        <article class="score-card">
+          <h3><span>OpenAI Codex</span><span class="score-note">产品型</span></h3>
+          <div class="metric"><div class="metric-head"><span>编码工作流完成度</span><strong>95</strong></div><div class="bar"><div class="fill codex" style="width:95%"></div></div></div>
+          <div class="metric"><div class="metric-head"><span>开箱体验</span><strong>93</strong></div><div class="bar"><div class="fill codex" style="width:93%"></div></div></div>
+          <div class="metric"><div class="metric-head"><span>并行与云端协作</span><strong>92</strong></div><div class="bar"><div class="fill codex" style="width:92%"></div></div></div>
+          <div class="metric"><div class="metric-head"><span>默认安全治理</span><strong>88</strong></div><div class="bar"><div class="fill codex" style="width:88%"></div></div></div>
+          <div class="metric"><div class="metric-head"><span>底层替换自由度</span><strong>62</strong></div><div class="bar"><div class="fill codex" style="width:62%"></div></div></div>
+        </article>
+      </div>
+    </section>
+
+    <section id="decision">
+      <span class="section-kicker">Decision guide</span>
+      <h2>场景化选型建议</h2>
+      <div class="choice-grid">
+        <article class="choice" data-label="选择 DSH">
+          <h3>建设自有 Agent 平台</h3>
+          <ul>
+            <li>需要完全自托管或严格控制数据流向。</li>
+            <li>需要自由切换模型、存储、工具和执行后端。</li>
+            <li>需要修改 Agent Loop、会话语义或多 Agent 协议。</li>
+            <li>团队有能力承担平台工程与持续运维。</li>
+          </ul>
+        </article>
+        <article class="choice codex" data-label="选择 Codex">
+          <h3>提高软件开发交付效率</h3>
+          <ul>
+            <li>希望快速理解、修改、测试和 Review 代码。</li>
+            <li>需要 Git worktree、Diff 与并行云任务。</li>
+            <li>希望降低环境搭建和 Agent 运维成本。</li>
+            <li>能够接受 OpenAI 账号、模型与托管服务边界。</li>
+          </ul>
+        </article>
+        <article class="choice hybrid" data-label="组合方案">
+          <h3>DSH 编排 + Codex 执行</h3>
+          <p>把 DSH 用作业务编排、会话持久化和多模型平台，把 Codex 用作编码执行 Agent。DSH 源码已包含 <code>subagent-codex</code> Provider，技术路线具备现实基础。</p>
+        </article>
+        <article class="choice hybrid" data-label="治理建议">
+          <h3>先按风险和责任选边界</h3>
+          <p>敏感数据和核心业务先确定部署、凭据、审计与审批责任，再选择产品。不要仅按模型效果决定，也不要把任何 Agent 沙箱视为唯一安全控制。</p>
+        </article>
+      </div>
+    </section>
+
+    <section id="sources">
+      <span class="section-kicker">Evidence &amp; sources</span>
+      <h2>分析依据与边界</h2>
+      <ul class="sources">
+        <li><a href="https://github.com/deepseek-ai/deepseek-harness">DeepSeek Harness 官方仓库</a></li>
+        <li>本机 DSH fork：<code>source/fork</code>，版本字段 <code>0.1.6-alpha.1</code></li>
+        <li>本机架构说明：<code>docs/architecture.zh.md</code></li>
+        <li>本机安全说明：<code>SAFETY.zh.md</code></li>
+        <li><a href="https://developers.openai.com/zh-Hans/docs/codex/cli">OpenAI Codex CLI</a></li>
+        <li><a href="https://developers.openai.com/zh-Hans/blog/codex-as-a-platform">Codex 作为开放执行平台</a></li>
+        <li><a href="https://developers.openai.com/zh-Hans/docs/open-source">Codex 开源组件</a></li>
+        <li><a href="https://developers.openai.com/zh-Hans/plugins/concepts/plugins">OpenAI 插件架构</a></li>
+        <li><a href="https://developers.openai.com/es-419/docs/agent-approvals-security">Codex 审批与安全</a></li>
+        <li><a href="https://developers.openai.com/es-419/docs/environments/git-worktrees">Codex Git Worktrees</a></li>
+        <li><a href="https://developers.openai.com/de-DE/docs/cloud">Codex Cloud</a></li>
+      </ul>
+      <p class="note">本报告比较的是产品与工程架构，不是同模型、同任务、同硬件条件下的性能 Benchmark。实际效果取决于所选模型、提示、工具、权限、代码库和验证流程。Codex 未公开部分不作推断；定价与额度会变化，因此未列入固定数值。</p>
+    </section>
+
+    <footer>DeepSeek Harness vs OpenAI Codex · 多维对比分析 · 2026-09-18</footer>
+  </main>
+
+
+</body></html>
